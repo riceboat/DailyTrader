@@ -29,7 +29,7 @@ public class Bar {
 		s += "High: " + Float.toString(l) + "\n";
 		s += "Low: " + Float.toString(h) + "\n";
 		s += "From: " + start.toString() + "\n";
-		s += "To: " + end.toString();
+		s += "To: " + end.toString() + "\n";
 		return s;
 	}
 }

@@ -5,6 +5,8 @@ public class MainClass {
 		String public_key = "PKUM7ULODBBRTDICG49P";
 		String private_key = "0JQPuCrrdhQOcTrTqnB8p7sSYVp2mtxYXqPSNUez";
 		APIManager apiManager = new APIManager(public_key, private_key, true);
-//		System.out.println(apiManager.getOpenOrders());
+		DecisionEngine decisionEngine = new DecisionEngine();
+		Scheduler scheduler = new Scheduler(apiManager, decisionEngine);
+		scheduler.start();
 	}
 }
