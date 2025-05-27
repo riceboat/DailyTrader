@@ -120,7 +120,7 @@ public class APIManager {
 		APIRequest("v2/positions", args, "api", "DELETE");
 	}
 
-	public void createOrder(String symbol, float qty, String side) {
+	public JSONObject createOrder(String symbol, float qty, String side) {
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("symbol", symbol);
 		args.put("qty", Float.toString(qty));
@@ -128,8 +128,58 @@ public class APIManager {
 		args.put("type", "market");
 		args.put("time_in_force", "day");
 		JSONObject response = (JSONObject) APIRequest("v2/orders", args, "api", "POST");
+		return response;
 	}
-
+	public OptionChain getOptions(String symbol){
+		ArrayList<Option> options = new ArrayList<Option>();
+		HashMap<String, String> args = new HashMap<String, String>();
+		args.put("underlying_symbols", symbol);
+		JSONObject response = (JSONObject) APIRequest("v2/options/contracts", args, "api","GET");
+		JSONArray array = response.getJSONArray("option_contracts");
+		for (int i = 0; i < array.length(); i++) {
+			options.add(new Option(array.getJSONObject(i)));
+		}
+		OptionChain chain = new OptionChain(options, this);
+		return chain;
+	}
+	public Option getOptionQuote(Option o) {
+		HashMap<String, String> args = new HashMap<String, String>();
+		args.put("symbols", o.symbol);
+		JSONObject response = (JSONObject) APIRequest("v1beta1/options/quotes/latest", args, "data","GET");
+		JSONObject obj = response.getJSONObject("quotes").getJSONObject(o.symbol);
+		
+		float askPrice = obj.getFloat("ap");
+		float bidPrice = obj.getFloat("bp");
+		Date lastQuote = Date.from(Instant.parse(obj.getString("t")));
+		float closePrice = getAskPrice(o.underlyingSymbol);
+		o.updateFromQuote(askPrice, bidPrice, lastQuote, closePrice);
+		return o;
+		
+	}
+	public ArrayList<Option> getOptionQuotes(ArrayList<Option> options) {
+		HashMap<String, String> args = new HashMap<String, String>();
+		String s = "";
+		for (int i = 0; i < options.size(); i++) {
+			s += options.get(i).symbol;
+			if (i != options.size() - 1) {
+				s += "%2C";
+			}
+		}
+		args.put("symbols", s);
+		JSONObject response = (JSONObject) APIRequest("v1beta1/options/quotes/latest", args, "data","GET");
+		JSONObject arr = response.getJSONObject("quotes");
+		float closePrice = getAskPrice(options.get(0).underlyingSymbol);
+		for (int i = 0; i < arr.length(); i++) {
+			JSONObject obj = arr.getJSONObject(options.get(i).symbol);
+			float askPrice = obj.getFloat("ap");
+			float bidPrice = obj.getFloat("bp");
+			Date lastQuote = Date.from(Instant.parse(obj.getString("t")));
+			options.get(i).updateFromQuote(askPrice, bidPrice, lastQuote, closePrice);
+		}
+		
+		return options;
+		
+	}
 	public ArrayList<String> getTopGainers(int amount) {
 		ArrayList<String> symbols = new ArrayList<String>();
 		HashMap<String, String> args = new HashMap<String, String>();
