@@ -120,7 +120,7 @@ public class APIManager {
 		APIRequest("v2/positions", args, "api", "DELETE");
 	}
 
-	public String createOrder(String symbol, float qty, String side) {
+	public void createOrder(String symbol, float qty, String side) {
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("symbol", symbol);
 		args.put("qty", Float.toString(qty));
@@ -128,7 +128,6 @@ public class APIManager {
 		args.put("type", "market");
 		args.put("time_in_force", "day");
 		JSONObject response = (JSONObject) APIRequest("v2/orders", args, "api", "POST");
-		return response.getString("id");
 	}
 
 	public ArrayList<String> getTopGainers(int amount) {
@@ -200,6 +199,21 @@ public class APIManager {
 			dataString = dataString.substring(0, dataString.length() - 1);
 			dataString += "}";
 			body = HttpRequest.BodyPublishers.ofString(dataString);
+		}
+		else {
+			String pathString = "";
+			int s = args.size();
+			if (s!=0) {
+				pathString = "?";
+			}
+			for (Map.Entry<String, String> entry : args.entrySet()) {
+				pathString +=  entry.getKey() + "=" + entry.getValue();
+				s--;
+				if (s!=0) {
+					pathString+="&";
+				}
+			}
+			path += pathString;
 		}
 		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(path)).header("accept", "application/json")
 				.header("content-type", "application/json").header("APCA-API-KEY-ID", public_key)

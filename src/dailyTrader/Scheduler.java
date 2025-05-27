@@ -17,6 +17,7 @@ public class Scheduler {
 	
 	public Scheduler(APIManager apiManager, DecisionEngine decisionEngine) {
 		this.apiManager = apiManager;
+		this.decisionEngine = decisionEngine;
 		marketOpen = apiManager.getNextMarketOpen().toInstant();
 		marketClose = apiManager.getNextMarketClose().toInstant();
 	}
@@ -48,15 +49,19 @@ public class Scheduler {
 		isOpen = apiManager.isMarketOpen();
 		schedule = Executors.newScheduledThreadPool(1);
 
-		Runnable tt = () -> {
-			frame();
-		};
-
 		if (isOpen) {
-			schedule.scheduleAtFixedRate(tt, 0, 1, TimeUnit.MINUTES);
+			//schedule.scheduleAtFixedRate(tt, 5, 5, TimeUnit.SECONDS);
+			frame();
+			try {
+				TimeUnit.SECONDS.sleep(Duration.ofSeconds(60).toSeconds());
+				
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			start();
+			
 		} else {
 			marketOpen = apiManager.getNextMarketOpen().toInstant();
-			
 			notReady();
 		}
 
