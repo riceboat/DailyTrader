@@ -8,9 +8,9 @@ public class MainClass {
 		//DecisionEngine decisionEngine = new DecisionEngine(apiManager);
 		//Scheduler scheduler = new Scheduler(apiManager, decisionEngine);
 		//scheduler.start();
-		OptionChain chain = apiManager.getOptions("NVDA");
+		OptionChain chain = apiManager.getOptionsInRange("NVDA", 100, 135);
 		chain.updateAll();
 		System.out.println(chain);
-		//System.out.println(o.getProfitAtExpiry(134, 4.06f));
+
 	}
 }

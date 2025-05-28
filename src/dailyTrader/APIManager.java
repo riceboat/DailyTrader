@@ -6,6 +6,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -130,10 +131,14 @@ public class APIManager {
 		JSONObject response = (JSONObject) APIRequest("v2/orders", args, "api", "POST");
 		return response;
 	}
+	
 	public OptionChain getOptions(String symbol){
 		ArrayList<Option> options = new ArrayList<Option>();
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("underlying_symbols", symbol);
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		String dateString = formatter.format(Date.from(Instant.now()));
+		args.put("expiration_date_gte", dateString);
 		JSONObject response = (JSONObject) APIRequest("v2/options/contracts", args, "api","GET");
 		JSONArray array = response.getJSONArray("option_contracts");
 		for (int i = 0; i < array.length(); i++) {
@@ -142,6 +147,25 @@ public class APIManager {
 		OptionChain chain = new OptionChain(options, this);
 		return chain;
 	}
+	
+	public OptionChain getOptionsInRange(String symbol, int low, int high){
+		ArrayList<Option> options = new ArrayList<Option>();
+		HashMap<String, String> args = new HashMap<String, String>();
+		args.put("underlying_symbols", symbol);
+		args.put("strike_price_gte", Integer.toString(low));
+		args.put("strike_price_lte", Integer.toString(high));
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		String dateString = formatter.format(Date.from(Instant.now()));
+		args.put("expiration_date_gte", dateString);
+		JSONObject response = (JSONObject) APIRequest("v2/options/contracts", args, "api","GET");
+		JSONArray array = response.getJSONArray("option_contracts");
+		for (int i = 0; i < array.length(); i++) {
+			options.add(new Option(array.getJSONObject(i)));
+		}
+		OptionChain chain = new OptionChain(options, this);
+		return chain;
+	}
+	
 	public Option getOptionQuote(Option o) {
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("symbols", o.symbol);
