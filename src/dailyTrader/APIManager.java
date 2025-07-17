@@ -8,6 +8,7 @@ import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -131,15 +132,15 @@ public class APIManager {
 		JSONObject response = (JSONObject) APIRequest("v2/orders", args, "api", "POST");
 		return response;
 	}
-	
-	public OptionChain getOptions(String symbol){
+
+	public OptionChain getOptions(String symbol) {
 		ArrayList<Option> options = new ArrayList<Option>();
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("underlying_symbols", symbol);
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		String dateString = formatter.format(Date.from(Instant.now()));
 		args.put("expiration_date_gte", dateString);
-		JSONObject response = (JSONObject) APIRequest("v2/options/contracts", args, "api","GET");
+		JSONObject response = (JSONObject) APIRequest("v2/options/contracts", args, "api", "GET");
 		JSONArray array = response.getJSONArray("option_contracts");
 		for (int i = 0; i < array.length(); i++) {
 			options.add(new Option(array.getJSONObject(i)));
@@ -147,17 +148,19 @@ public class APIManager {
 		OptionChain chain = new OptionChain(options, this);
 		return chain;
 	}
-	
-	public OptionChain getOptionsInRange(String symbol, int low, int high){
+
+	public OptionChain getOptionsInRange(String symbol, int low, int high, int days) {
 		ArrayList<Option> options = new ArrayList<Option>();
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("underlying_symbols", symbol);
 		args.put("strike_price_gte", Integer.toString(low));
 		args.put("strike_price_lte", Integer.toString(high));
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-		String dateString = formatter.format(Date.from(Instant.now()));
-		args.put("expiration_date_gte", dateString);
-		JSONObject response = (JSONObject) APIRequest("v2/options/contracts", args, "api","GET");
+		String dateStringGTE = formatter.format(Date.from(Instant.now()));
+		args.put("expiration_date_gte", dateStringGTE);
+		String dateStringLTE = formatter.format(Date.from(Instant.now().plus(days, ChronoUnit.DAYS)));
+		args.put("expiration_date_lte", dateStringLTE);
+		JSONObject response = (JSONObject) APIRequest("v2/options/contracts", args, "api", "GET");
 		JSONArray array = response.getJSONArray("option_contracts");
 		for (int i = 0; i < array.length(); i++) {
 			options.add(new Option(array.getJSONObject(i)));
@@ -165,21 +168,22 @@ public class APIManager {
 		OptionChain chain = new OptionChain(options, this);
 		return chain;
 	}
-	
+
 	public Option getOptionQuote(Option o) {
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("symbols", o.symbol);
-		JSONObject response = (JSONObject) APIRequest("v1beta1/options/quotes/latest", args, "data","GET");
+		JSONObject response = (JSONObject) APIRequest("v1beta1/options/quotes/latest", args, "data", "GET");
 		JSONObject obj = response.getJSONObject("quotes").getJSONObject(o.symbol);
-		
+
 		float askPrice = obj.getFloat("ap");
 		float bidPrice = obj.getFloat("bp");
 		Date lastQuote = Date.from(Instant.parse(obj.getString("t")));
 		float closePrice = getAskPrice(o.underlyingSymbol);
 		o.updateFromQuote(askPrice, bidPrice, lastQuote, closePrice);
 		return o;
-		
+
 	}
+
 	public ArrayList<Option> getOptionQuotes(ArrayList<Option> options) {
 		HashMap<String, String> args = new HashMap<String, String>();
 		String s = "";
@@ -190,7 +194,7 @@ public class APIManager {
 			}
 		}
 		args.put("symbols", s);
-		JSONObject response = (JSONObject) APIRequest("v1beta1/options/quotes/latest", args, "data","GET");
+		JSONObject response = (JSONObject) APIRequest("v1beta1/options/quotes/latest", args, "data", "GET");
 		JSONObject arr = response.getJSONObject("quotes");
 		float closePrice = getAskPrice(options.get(0).underlyingSymbol);
 		for (int i = 0; i < arr.length(); i++) {
@@ -200,15 +204,16 @@ public class APIManager {
 			Date lastQuote = Date.from(Instant.parse(obj.getString("t")));
 			options.get(i).updateFromQuote(askPrice, bidPrice, lastQuote, closePrice);
 		}
-		
+
 		return options;
-		
+
 	}
+
 	public ArrayList<String> getTopGainers(int amount) {
 		ArrayList<String> symbols = new ArrayList<String>();
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("top", Integer.toString(amount));
-		JSONObject response = (JSONObject) APIRequest("v1beta1/screener/stocks/movers", args, "data","GET");
+		JSONObject response = (JSONObject) APIRequest("v1beta1/screener/stocks/movers", args, "data", "GET");
 		JSONArray actives = response.getJSONArray("gainers");
 		for (int i = 0; i < actives.length(); i++) {
 			symbols.add(actives.getJSONObject(i).getString("symbol"));
@@ -248,13 +253,13 @@ public class APIManager {
 		JSONObject response = (JSONObject) APIRequest("v2/stocks/snapshots", args, "data", "GET");
 		return new Bar(response.getJSONObject(symbol).getJSONObject("minuteBar"), 1, 0);
 	}
-	
+
 	public Account getAccount() {
 		HashMap<String, String> args = new HashMap<String, String>();
 		JSONObject response = (JSONObject) APIRequest("v2/account", args, "api", "GET");
 		return new Account(response);
 	}
-	
+
 	public Object APIRequest(String path, Map<String, String> args, String api, String method) {
 		String prefix = "https://";
 		if (paper == true && api == "api") {
@@ -273,18 +278,17 @@ public class APIManager {
 			dataString = dataString.substring(0, dataString.length() - 1);
 			dataString += "}";
 			body = HttpRequest.BodyPublishers.ofString(dataString);
-		}
-		else {
+		} else {
 			String pathString = "";
 			int s = args.size();
-			if (s!=0) {
+			if (s != 0) {
 				pathString = "?";
 			}
 			for (Map.Entry<String, String> entry : args.entrySet()) {
-				pathString +=  entry.getKey() + "=" + entry.getValue();
+				pathString += entry.getKey() + "=" + entry.getValue();
 				s--;
-				if (s!=0) {
-					pathString+="&";
+				if (s != 0) {
+					pathString += "&";
 				}
 			}
 			path += pathString;
@@ -294,7 +298,7 @@ public class APIManager {
 				.header("APCA-API-SECRET-KEY", private_key).method(method, body).build();
 
 		HttpResponse<String> response;
-		
+
 		try {
 			response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() > 300) {

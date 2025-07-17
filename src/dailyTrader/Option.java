@@ -5,8 +5,6 @@ import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
-import java.util.Random;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -53,24 +51,23 @@ public class Option {
 		this.iv = calculateIVFromPrice(getMidPrice());
 	}
 
-
 	double getMidPrice() {
 		return (askPrice + bidPrice) / 2.0;
 	}
 
-	double calculateIVFromPrice(double price) {
-		int c = 0;
-		double vol = 0.0;
-		double priceGuess = 0.0;
-		while (priceGuess < price) {
-			c++;
-			priceGuess = getPriceAtIV(vol);
-			vol += 0.01;
-			if (c > 10000) {
-				System.err.println("IV calculation for: " + symbol + " Failed!");
-				break;
+	double calculateIVFromPrice(double price) { // iv is usually only accurate when market is open
+		double high = 5.0;
+		double low = 0.0;
+		while ((high / low) - 1 > 0.01) {
+			double vol = (high + low) / 2;
+			double priceGuess = getPriceAtIV(vol);
+			if (priceGuess > price) {
+				high = vol;
+			} else {
+				low = vol;
 			}
 		}
+		double vol = (high + low) / 2;
 		vol = Math.round(vol * 100.0) / 100.0;
 		return vol;
 	}
@@ -79,56 +76,39 @@ public class Option {
 		return (double) ((Duration.between(Instant.now(), expiration.toInstant()).toSeconds()) / 60.0 / 60.0 / 24.0
 				/ 252.0);
 	}
-	
-    public double callPrice(double s, double x, double r, double sigma, double t) {
-        double d1 = (Math.log(s/x) + (r + sigma * sigma/2) * t) / (sigma * Math.sqrt(t));
-        double d2 = d1 - sigma * Math.sqrt(t);
-        return s * cdf(d1) - x * Math.exp(-r*t) * cdf(d2);
-    }
-    
-    public double putPrice(double s, double x, double r, double sigma, double t) {
-        double d1 = (Math.log(s/x) + (r + sigma * sigma/2) * t) / (sigma * Math.sqrt(t));
-        double d2 = d1 - sigma * Math.sqrt(t);
-        return s * cdf(d1) - x * Math.exp(-r*t) * cdf(d2);
-    }
-    
+
+	public double callPrice(double s, double x, double sigma, double t) {
+		double d1 = (Math.log(s / x) + (sigma * sigma / 2) * t) / (sigma * Math.sqrt(t));
+		double d2 = d1 - sigma * Math.sqrt(t);
+		return s * cdf(d1) - x * cdf(d2);
+	}
+
+	public double putPrice(double s, double x, double sigma, double t) {
+		double d1 = (Math.log(s / x) + (sigma * sigma / 2) * t) / (sigma * Math.sqrt(t));
+		double d2 = d1 - sigma * Math.sqrt(t);
+		return x * cdf(-d2) - s * cdf(-d1);
+	}
+
 	public double getPriceAtIV(double vol) {
 		double t = getExpiryYearFraction();
 		if (type.equals("call")) {
-			return callPrice(closePrice, strikePrice, 0.01, vol, t);
+			return callPrice(closePrice, strikePrice, vol, t);
 		} else {
-			return putPrice(closePrice, strikePrice, 0.01, vol, t);
+			return putPrice(closePrice, strikePrice, vol, t);
 		}
 	}
 
-	
-	
 	double cdf(double z) {
-        return 1.0/(1.0 + Math.pow(Math.E, -1.65*z));
-	}
-
-	public double getValueAtExpiry(double underlyingPrice) {
-		double price = underlyingPrice - strikePrice;
-		return Math.max(0, price);
-	}
-
-	public double getProbabilityOfProfit(double entryPrice) {
-		double probability = 0;
-		double vol = 0.37;
-		double t = getExpiryYearFraction();
-		double volInPeriod = t * vol;
-		Random r = new Random();
-		for (int i = 0; i < 10; i++) {
-			double testPrice = r.nextGaussian() * (volInPeriod * entryPrice) + entryPrice;
-			probability += getProfitAtExpiry(testPrice, entryPrice);
-		}
-		return probability / 10.0;
+		return 1.0 / (1.0 + Math.pow(Math.E, -1.65 * z));
 	}
 
 	public double getProfitAtExpiry(double underlyingPrice, double entryPrice) {
-		return (getValueAtExpiry(underlyingPrice) - entryPrice) * 100;
+		if (type.equals("call")) {
+			return underlyingPrice - strikePrice - entryPrice * 100;
+		} else {
+			return strikePrice - underlyingPrice - entryPrice * 100;
+		}
 	}
-
 
 	public String toString() {
 		String s = "";
@@ -142,6 +122,7 @@ public class Option {
 			s += "Bid Price: " + Double.toString(Math.round(bidPrice * 100) / 100.0) + "\n";
 			s += "Last Quote: " + Double.toString(closePrice) + " at " + lastQuote.toString() + "\n";
 			s += "IV: " + Double.toString(iv) + "\n";
+			s += Double.toString(getProfitAtExpiry(170, askPrice));
 		}
 		s += "\n";
 		return s;
