@@ -53,7 +53,7 @@ public class Scheduler {
 			//schedule.scheduleAtFixedRate(tt, 5, 5, TimeUnit.SECONDS);
 			frame();
 			try {
-				TimeUnit.SECONDS.sleep(Duration.ofSeconds(60).toSeconds());
+				TimeUnit.SECONDS.sleep(Duration.ofSeconds(30).toSeconds());
 				
 			} catch (InterruptedException e) {
 				e.printStackTrace();

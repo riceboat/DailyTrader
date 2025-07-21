@@ -2,8 +2,8 @@ package dailyTrader;
 
 public class MainClass {
 	public static void main(String args[]) {
-		String public_key = "PKJJGUZRUAD4BDPRN55F";
-		String private_key = "v9IZBcphqOhv7T4JHZEksvzhnWBrLZkzlsRNXrgK";
+		String public_key = args[0];
+		String private_key = args[1];
 		APIManager apiManager = new APIManager(public_key, private_key, true);
 		DecisionEngine decisionEngine = new DecisionEngine(apiManager);
 		Scheduler scheduler = new Scheduler(apiManager, decisionEngine);

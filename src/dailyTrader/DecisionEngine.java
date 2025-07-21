@@ -24,15 +24,13 @@ public class DecisionEngine {
 		for (Option option : chain.options) {
 			addDecision(option);
 		}
-		LinkedHashMap<Option, Double> sortedOptions = sortOptions();
 		MetricEvaluator evaluator = new MetricEvaluator();
-		
+
 		ArrayList<Option> heldOptions = new ArrayList<Option>();
 		for (Position position : portfolio.positions) {
 			Option option = chain.getOptionByCode(position.symbol);
 			if (option != null) {
 				heldOptions.add(option);
-				//System.out.println(option);
 			}
 		}
 		ArrayList<Option> sellTheseOptions = new ArrayList<Option>();
@@ -42,10 +40,12 @@ public class DecisionEngine {
 			}
 		}
 		ArrayList<Option> buyTheseOptions = new ArrayList<Option>();
-		double buyingPower = apiManager.getAccount().buying_power;
-		for (Option option : sortedOptions.keySet()) {
-			if (evaluator.evaluate(option) > 35 && buyingPower > option.askPrice * 100) {
-				buyTheseOptions.add(option);
+		double buyingPower = apiManager.getAccount().cash;
+		Option bestOption = bestOption(buyingPower);
+		if (bestOption != null) {
+			if (evaluator.evaluate(bestOption) > 40) {
+				buyingPower -= bestOption.askPrice * 100;
+				buyTheseOptions.add(bestOption);
 			}
 		}
 		for (Option option : sellTheseOptions) {
@@ -62,6 +62,18 @@ public class DecisionEngine {
 		MetricEvaluator eval = new MetricEvaluator();
 		double score = eval.evaluate(option);
 		decisions.put(option, score);
+	}
+
+	public Option bestOption(double cash) {
+		Option best = null;
+		double top = Double.MIN_VALUE;
+		for (Option option : decisions.keySet()) {
+			if (decisions.get(option) > top && option.askPrice * 100 < cash) {
+				top = decisions.get(option);
+				best = option;
+			}
+		}
+		return best;
 	}
 
 	public LinkedHashMap<Option, Double> sortOptions() {
