@@ -23,6 +23,14 @@ public class OptionChain {
 		return s;
 	}
 
+	Option getOptionByCode(String code) {
+		for (Option option : options) {
+			if (option.symbol.equals(code)) {
+				return option;
+			}
+		}
+		return null;
+	}
 	OptionChain filterByOpenInterest(int oi) {
 		ArrayList<Option> newChain = new ArrayList<Option>();
 		for (Option o : options) {

@@ -122,10 +122,10 @@ public class APIManager {
 		APIRequest("v2/positions", args, "api", "DELETE");
 	}
 
-	public JSONObject createOrder(String symbol, float qty, String side) {
+	public JSONObject createOrder(String symbol, double d, String side) {
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("symbol", symbol);
-		args.put("qty", Float.toString(qty));
+		args.put("qty", Double.toString(d));
 		args.put("side", side);
 		args.put("type", "market");
 		args.put("time_in_force", "day");
