@@ -31,7 +31,7 @@ public class APIManager {
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("symbols", symbol);
 		JSONObject response = (JSONObject) APIRequest("v2/stocks/quotes/latest", args, "data", "GET");
-		float price = Float.parseFloat(response.getJSONObject("quotes").getJSONObject(symbol).get("ap").toString());
+		float price = Float.parseFloat(response.getJSONObject("quotes").getJSONObject(symbol).get("bp").toString());
 		return price;
 	}
 

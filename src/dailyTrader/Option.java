@@ -132,8 +132,8 @@ public class Option {
 		return (Math.pow(Math.E, -0.5 * Math.pow((x - mean) / std, 2)) / (std * Math.sqrt(2 * Math.PI)));
 	}
 
-	double getProbabilityOfProfit() {
-		double mean = 172.41;
+	double getProbabilityOfProfit(double currentPrice) {
+		double mean = currentPrice;
 		double tot = 0;
 		double std = bars.getStandardDeviation();
 		if (type.equals("put")) {
@@ -149,6 +149,33 @@ public class Option {
 		} else {
 			double min = getBreakEvenAtExpiry(askPrice);
 			double max = 1000;
+			int n = 1000;
+			for (int i = 0; i < n; i++) {
+				double a = min + (i * max / n);
+				double b = min + (i + 1) * (max / n);
+				tot += (b - a) * ((normalDistribution(a, std, mean) + normalDistribution(b, std, mean)) / 2.0);
+			}
+		}
+		tot = Math.round(tot * 100.0);
+		return tot;
+	}
+	double getProbabilityOfMaxLoss(double currentPrice) {
+		double mean = currentPrice;
+		double tot = 0;
+		double std = bars.getStandardDeviation();
+		if (type.equals("put")) {
+			double min = strikePrice;
+			double max = 1000;
+
+			int n = 1000;
+			for (int i = 0; i < n; i++) {
+				double a = min + (i * max / n);
+				double b = min + (i + 1) * (max / n);
+				tot += (b - a) * ((normalDistribution(a, std, mean) + normalDistribution(b, std, mean)) / 2.0);
+			}
+		} else {
+			double min = 0;
+			double max = strikePrice;
 			int n = 1000;
 			for (int i = 0; i < n; i++) {
 				double a = min + (i * max / n);
@@ -178,7 +205,8 @@ public class Option {
 			s += "IV: " + Double.toString(iv) + "\n";
 			s += "Breakeven: " + Double.toString(getBreakEvenAtExpiry(askPrice)) + "\n";
 			s += "Max Risk: " + Double.toString(getMaxRisk()) + "\n";
-			s += "Profit Probability: " + Double.toString(getProbabilityOfProfit()) + "%\n";
+			s += "Profit Probability: " + Double.toString(getProbabilityOfProfit(closePrice)) + "\n";
+			s += "Max Loss Probability: " + Double.toString(getProbabilityOfMaxLoss(closePrice)) + "\n";
 		}
 		return s;
 	}

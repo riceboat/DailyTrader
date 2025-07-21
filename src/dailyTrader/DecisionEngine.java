@@ -16,9 +16,9 @@ public class DecisionEngine {
 		chooseDecision();
 	}
 	public void addDecision(Option option) {
-		MetricEvaluator eval = new MetricEvaluator();
-		double score = eval.evaluate(option);
-		decisions.put(option, score);
+		//MetricEvaluator eval = new MetricEvaluator();
+		//double score = eval.evaluate(option);
+		//decisions.put(option, score);
 	}
 	public Option chooseDecision() {
 		double maxValue = Double.MIN_VALUE;
