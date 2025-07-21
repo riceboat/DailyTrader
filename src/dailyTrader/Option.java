@@ -21,6 +21,7 @@ public class Option {
 	String underlyingSymbol;
 	double iv;
 	String type;
+	Bars bars;
 
 	public Option(JSONObject obj) {
 		symbol = obj.getString("symbol");
@@ -43,12 +44,13 @@ public class Option {
 		}
 	}
 
-	public void updateFromQuote(double askPrice, double bidPrice, Date lastQuote, double closePrice) {
+	public void updateFromQuote(double askPrice, double bidPrice, Date lastQuote, double closePrice, Bars bars) {
 		this.askPrice = askPrice;
 		this.bidPrice = bidPrice;
 		this.lastQuote = lastQuote;
 		this.closePrice = closePrice;
 		this.iv = calculateIVFromPrice(getMidPrice());
+		this.bars = bars;
 	}
 
 	double getMidPrice() {
@@ -104,10 +106,62 @@ public class Option {
 
 	public double getProfitAtExpiry(double underlyingPrice, double entryPrice) {
 		if (type.equals("call")) {
-			return underlyingPrice - strikePrice - entryPrice * 100;
+			return Math.max(0, underlyingPrice - strikePrice) * 100 - entryPrice * 100;
 		} else {
-			return strikePrice - underlyingPrice - entryPrice * 100;
+			return Math.max(0, strikePrice - underlyingPrice) * 100 - entryPrice * 100;
 		}
+	}
+
+	public double getBreakEvenAtExpiry(double entryPrice) {
+		if (type.equals("call")) {
+			return strikePrice + entryPrice;
+		} else {
+			return strikePrice - entryPrice;
+		}
+	}
+
+	public double getBreakRiskAtExpiry(double entryPrice) {
+		if (type.equals("call")) {
+			return strikePrice;
+		} else {
+			return strikePrice;
+		}
+	}
+
+	double normalDistribution(double x, double std, double mean) {
+		return (Math.pow(Math.E, -0.5 * Math.pow((x - mean) / std, 2)) / (std * Math.sqrt(2 * Math.PI)));
+	}
+
+	double getProbabilityOfProfit() {
+		double mean = 172.41;
+		double tot = 0;
+		double std = bars.getStandardDeviation();
+		if (type.equals("put")) {
+			double min = 0;
+			double max = getBreakEvenAtExpiry(askPrice);
+
+			int n = 1000;
+			for (int i = 0; i < n; i++) {
+				double a = min + (i * max / n);
+				double b = min + (i + 1) * (max / n);
+				tot += (b - a) * ((normalDistribution(a, std, mean) + normalDistribution(b, std, mean)) / 2.0);
+			}
+		} else {
+			double min = getBreakEvenAtExpiry(askPrice);
+			double max = 1000;
+			int n = 1000;
+			for (int i = 0; i < n; i++) {
+				double a = min + (i * max / n);
+				double b = min + (i + 1) * (max / n);
+				tot += (b - a) * ((normalDistribution(a, std, mean) + normalDistribution(b, std, mean)) / 2.0);
+			}
+		}
+		tot = Math.round(tot * 100.0);
+		return tot;
+	}
+
+	double getMaxRisk() {
+		return askPrice * 100;
 	}
 
 	public String toString() {
@@ -122,9 +176,10 @@ public class Option {
 			s += "Bid Price: " + Double.toString(Math.round(bidPrice * 100) / 100.0) + "\n";
 			s += "Last Quote: " + Double.toString(closePrice) + " at " + lastQuote.toString() + "\n";
 			s += "IV: " + Double.toString(iv) + "\n";
-			s += Double.toString(getProfitAtExpiry(170, askPrice));
+			s += "Breakeven: " + Double.toString(getBreakEvenAtExpiry(askPrice)) + "\n";
+			s += "Max Risk: " + Double.toString(getMaxRisk()) + "\n";
+			s += "Profit Probability: " + Double.toString(getProbabilityOfProfit()) + "%\n";
 		}
-		s += "\n";
 		return s;
 	}
 }

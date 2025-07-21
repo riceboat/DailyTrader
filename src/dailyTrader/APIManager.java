@@ -106,14 +106,14 @@ public class APIManager {
 		return orders;
 	}
 
-	public ArrayList<Position> getPositions() {
-		ArrayList<Position> positions = new ArrayList<Position>();
+	public Portfolio getPortfolio() {
 		HashMap<String, String> args = new HashMap<String, String>();
 		JSONArray response = (JSONArray) APIRequest("v2/positions", args, "api", "GET");
+		Portfolio portfolio = new Portfolio();
 		for (int i = 0; i < response.length(); i++) {
-			positions.add(new Position(response.getJSONObject(i)));
+			portfolio.addPosition(new Position(response.getJSONObject(i)));
 		}
-		return positions;
+		return portfolio;
 	}
 
 	public void closeAllPositions() {
@@ -178,8 +178,9 @@ public class APIManager {
 		float askPrice = obj.getFloat("ap");
 		float bidPrice = obj.getFloat("bp");
 		Date lastQuote = Date.from(Instant.parse(obj.getString("t")));
-		float closePrice = getAskPrice(o.underlyingSymbol);
-		o.updateFromQuote(askPrice, bidPrice, lastQuote, closePrice);
+		double closePrice = getAskPrice(o.underlyingSymbol);
+		Bars bars = getHistoricalBars(o.underlyingSymbol, 30, ChronoUnit.DAYS);
+		o.updateFromQuote(askPrice, bidPrice, lastQuote, closePrice, bars);
 		return o;
 
 	}
@@ -196,13 +197,14 @@ public class APIManager {
 		args.put("symbols", s);
 		JSONObject response = (JSONObject) APIRequest("v1beta1/options/quotes/latest", args, "data", "GET");
 		JSONObject arr = response.getJSONObject("quotes");
+		Bars bars = getHistoricalBars(options.get(0).underlyingSymbol, 30, ChronoUnit.DAYS);
 		float closePrice = getAskPrice(options.get(0).underlyingSymbol);
 		for (int i = 0; i < arr.length(); i++) {
 			JSONObject obj = arr.getJSONObject(options.get(i).symbol);
 			float askPrice = obj.getFloat("ap");
 			float bidPrice = obj.getFloat("bp");
 			Date lastQuote = Date.from(Instant.parse(obj.getString("t")));
-			options.get(i).updateFromQuote(askPrice, bidPrice, lastQuote, closePrice);
+			options.get(i).updateFromQuote(askPrice, bidPrice, lastQuote, closePrice, bars);
 		}
 
 		return options;
@@ -253,6 +255,37 @@ public class APIManager {
 		JSONObject response = (JSONObject) APIRequest("v2/stocks/snapshots", args, "data", "GET");
 		return new Bar(response.getJSONObject(symbol).getJSONObject("minuteBar"), 1, 0);
 	}
+
+	public Bars getHistoricalBars(String symbol, int amount, ChronoUnit unit) {
+		Bars bars = new Bars();
+		HashMap<String, String> args = new HashMap<String, String>();
+		args.put("symbols", symbol);
+		switch (unit) {
+		case DAYS:
+			args.put("timeframe", "1D");
+			break;
+		case HOURS:
+			args.put("timeframe", "1H");
+			break;
+		case MINUTES:
+			args.put("timeframe", "1T");
+			break;
+		default:
+			args.put("timeframe", "1D");
+			break;
+		}
+		args.put("limit", Integer.toString(amount));
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		String startDate = formatter.format(Date.from(Instant.now().minus(amount, unit)));
+		args.put("start", startDate);
+		JSONObject response = (JSONObject) APIRequest("v2/stocks/bars", args, "data", "GET");
+		JSONArray arr = response.getJSONObject("bars").getJSONArray(symbol);
+		for (int i = 0; i < arr.length(); i++) {
+			bars.add(new Bar(arr.getJSONObject(i), 0, 24));
+		}
+		return bars;
+	}
+
 
 	public Account getAccount() {
 		HashMap<String, String> args = new HashMap<String, String>();
