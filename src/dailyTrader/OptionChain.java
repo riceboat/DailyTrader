@@ -41,10 +41,10 @@ public class OptionChain {
 		return new OptionChain(newChain, apiManager);
 	}
 	
-	OptionChain filterByAskPrice(double buying_power) {
+	OptionChain filterByAskPrice(double price) {
 		ArrayList<Option> newChain = new ArrayList<Option>();
 		for (Option o : options) {
-			if (o.askPrice * 100 < buying_power) {
+			if (o.askPrice * 100 < price) {
 				newChain.add(o);
 			}
 		}

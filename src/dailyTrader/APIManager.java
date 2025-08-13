@@ -10,8 +10,10 @@ import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.*;
@@ -69,6 +71,29 @@ public class APIManager {
 
 	public Date stringToLocalDate(String s) {
 		return Date.from(Instant.parse(s));
+	}
+
+	public ArrayList<Article> getMostRecentNewsToday(String[] symbols) {
+		List<String> symbolsArrayList = Arrays.asList(symbols);
+		HashMap<String, String> args = new HashMap<String, String>();
+		ArrayList<Article> articles = new ArrayList<Article>();
+		String s = "";
+		for (int i = 0; i < symbolsArrayList.size(); i++) {
+			s += symbolsArrayList.get(i);
+			if (i != symbolsArrayList.size() - 1) {
+				s += "%2C";
+			}
+		}
+		args.put("symbols", s);
+		args.put("limit", "50");
+		args.put("include_content", "true");
+		args.put("exclude_contentless", "true");
+		JSONObject response = (JSONObject) APIRequest("v1beta1/news", args, "data", "GET");
+		JSONArray array = response.getJSONArray("news");
+		for (int i = 0; i < array.length(); i++) {
+			articles.add(new Article(array.getJSONObject(i)));
+		}
+		return articles;
 	}
 
 	public ArrayList<String> getMostActiveSymbols(int amount) {
@@ -133,6 +158,13 @@ public class APIManager {
 		return response;
 	}
 
+	public Option getOptionByCode(String code) {
+		HashMap<String, String> args = new HashMap<String, String>();
+		JSONObject response = (JSONObject) APIRequest("v2/options/contracts/" + code, args, "api", "GET");
+		return new Option(response);
+
+	}
+
 	public OptionChain getOptions(String symbol) {
 		ArrayList<Option> options = new ArrayList<Option>();
 		HashMap<String, String> args = new HashMap<String, String>();
@@ -155,6 +187,7 @@ public class APIManager {
 		args.put("underlying_symbols", symbol);
 		args.put("strike_price_gte", Integer.toString(low));
 		args.put("strike_price_lte", Integer.toString(high));
+		args.put("limit", "10000");
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		String dateStringGTE = formatter.format(Date.from(Instant.now()));
 		args.put("expiration_date_gte", dateStringGTE);
@@ -165,8 +198,13 @@ public class APIManager {
 		for (int i = 0; i < array.length(); i++) {
 			options.add(new Option(array.getJSONObject(i)));
 		}
-		OptionChain chain = new OptionChain(options, this);
-		return chain;
+		if (options.size() > 0) {
+			OptionChain chain = new OptionChain(options, this);
+			return chain;
+		} else {
+			return null;
+		}
+
 	}
 
 	public Option getOptionQuote(Option o) {
@@ -187,26 +225,31 @@ public class APIManager {
 
 	public ArrayList<Option> getOptionQuotes(ArrayList<Option> options) {
 		HashMap<String, String> args = new HashMap<String, String>();
-		String s = "";
-		for (int i = 0; i < options.size(); i++) {
-			s += options.get(i).symbol;
-			if (i != options.size() - 1) {
-				s += "%2C";
+		
+		int count = 0;
+		while (count != options.size()) {
+			String s = "";
+			int limit = Math.min(100, options.size() - count);
+			for (int i = 0; i < limit; i++) {
+				s += options.get(i + count).symbol;
+				if (i != limit - 1) {
+					s += "%2C";
+				}
 			}
+			args.put("symbols", s);
+			JSONObject response = (JSONObject) APIRequest("v1beta1/options/quotes/latest", args, "data", "GET");
+			JSONObject arr = response.getJSONObject("quotes");
+			Bars bars = getHistoricalBars(options.get(0).underlyingSymbol, 30, ChronoUnit.DAYS);
+			float closePrice = getAskPrice(options.get(0).underlyingSymbol);
+			for (int i = 0; i < arr.length(); i++) {
+				JSONObject obj = arr.getJSONObject(options.get(i + count).symbol);
+				float askPrice = obj.getFloat("ap");
+				float bidPrice = obj.getFloat("bp");
+				Date lastQuote = Date.from(Instant.parse(obj.getString("t")));
+				options.get(i + count).updateFromQuote(askPrice, bidPrice, lastQuote, closePrice, bars);
+			}
+			count += Math.min(100, options.size() - count);
 		}
-		args.put("symbols", s);
-		JSONObject response = (JSONObject) APIRequest("v1beta1/options/quotes/latest", args, "data", "GET");
-		JSONObject arr = response.getJSONObject("quotes");
-		Bars bars = getHistoricalBars(options.get(0).underlyingSymbol, 30, ChronoUnit.DAYS);
-		float closePrice = getAskPrice(options.get(0).underlyingSymbol);
-		for (int i = 0; i < arr.length(); i++) {
-			JSONObject obj = arr.getJSONObject(options.get(i).symbol);
-			float askPrice = obj.getFloat("ap");
-			float bidPrice = obj.getFloat("bp");
-			Date lastQuote = Date.from(Instant.parse(obj.getString("t")));
-			options.get(i).updateFromQuote(askPrice, bidPrice, lastQuote, closePrice, bars);
-		}
-
 		return options;
 
 	}
@@ -285,7 +328,6 @@ public class APIManager {
 		}
 		return bars;
 	}
-
 
 	public Account getAccount() {
 		HashMap<String, String> args = new HashMap<String, String>();
