@@ -13,11 +13,13 @@ public class Bar {
 	float l;
 	Date end;
 	Date start;
-	public Bar(JSONObject obj, int minutes, int hours) {
+	public String symbol;
+	public Bar(JSONObject obj, int minutes, int hours, String symbol) {
 		this.o = obj.getFloat("o");
 		this.c = obj.getFloat("c");
 		this.h = obj.getFloat("h");
 		this.l = obj.getFloat("l");
+		this.symbol = symbol;
 		this.end = Date.from(Instant.parse(obj.getString("t")));
 		Instant before = end.toInstant().minus(Duration.ofHours(hours));
 		before = before.minus(Duration.ofMinutes(minutes));

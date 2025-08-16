@@ -282,21 +282,21 @@ public class APIManager {
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("symbols", symbol);
 		JSONObject response = (JSONObject) APIRequest("v2/stocks/snapshots", args, "data", "GET");
-		return new Bar(response.getJSONObject(symbol).getJSONObject("dailyBar"), 0, 24);
+		return new Bar(response.getJSONObject(symbol).getJSONObject("dailyBar"), 0, 24, symbol);
 	}
 
 	public Bar getPrevDailyBar(String symbol) {
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("symbols", symbol);
 		JSONObject response = (JSONObject) APIRequest("v2/stocks/snapshots", args, "data", "GET");
-		return new Bar(response.getJSONObject(symbol).getJSONObject("prevDailyBar"), 0, 24);
+		return new Bar(response.getJSONObject(symbol).getJSONObject("prevDailyBar"), 0, 24, symbol);
 	}
 
 	public Bar getMinuteBar(String symbol) {
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("symbols", symbol);
 		JSONObject response = (JSONObject) APIRequest("v2/stocks/snapshots", args, "data", "GET");
-		return new Bar(response.getJSONObject(symbol).getJSONObject("minuteBar"), 1, 0);
+		return new Bar(response.getJSONObject(symbol).getJSONObject("minuteBar"), 1, 0, symbol);
 	}
 
 	public Bars getHistoricalBars(String symbol, int amount, ChronoUnit unit) {
@@ -324,7 +324,7 @@ public class APIManager {
 		JSONObject response = (JSONObject) APIRequest("v2/stocks/bars", args, "data", "GET");
 		JSONArray arr = response.getJSONObject("bars").getJSONArray(symbol);
 		for (int i = 0; i < arr.length(); i++) {
-			bars.add(new Bar(arr.getJSONObject(i), 0, 24));
+			bars.add(new Bar(arr.getJSONObject(i), 0, 24, symbol));
 		}
 		return bars;
 	}
