@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Bars {
 	ArrayList<Bar> bars;
-	String symbol;
+	public String symbol;
 
 	public Bars() {
 		bars = new ArrayList<Bar>();
@@ -82,6 +82,23 @@ public class Bars {
 		double vol = Math.sqrt(tot / bars.size());
 		vol = vol * Math.sqrt(252);
 		return vol;
+	}
+
+	public Bars getNLastDays(int days) {
+		Bars newBars = new Bars();
+		int exclude = bars.size() - days;
+		for (int i = exclude; i < bars.size(); i++) {
+			newBars.add(bars.get(i));
+		}
+		return newBars;
+	}
+	
+	public Bars getNFirstDays(int days) {
+		Bars newBars = new Bars();
+		for (int i = 0; i < days; i++) {
+			newBars.add(bars.get(i));
+		}
+		return newBars;
 	}
 
 	public double crossCorrelationAtLag(Bars bars2, int lag) {

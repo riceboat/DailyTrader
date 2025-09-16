@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -134,7 +135,7 @@ public class APIManager {
 	public Portfolio getPortfolio() {
 		HashMap<String, String> args = new HashMap<String, String>();
 		JSONArray response = (JSONArray) APIRequest("v2/positions", args, "api", "GET");
-		Portfolio portfolio = new Portfolio();
+		Portfolio portfolio = new Portfolio(getAccount().cash);
 		for (int i = 0; i < response.length(); i++) {
 			portfolio.addPosition(new Position(response.getJSONObject(i)));
 		}
@@ -225,7 +226,7 @@ public class APIManager {
 
 	public ArrayList<Option> getOptionQuotes(ArrayList<Option> options) {
 		HashMap<String, String> args = new HashMap<String, String>();
-		
+
 		int count = 0;
 		while (count != options.size()) {
 			String s = "";
@@ -327,6 +328,68 @@ public class APIManager {
 			bars.add(new Bar(arr.getJSONObject(i), 0, 24, symbol));
 		}
 		return bars;
+	}
+
+	public HashMap<String, Bars> getMultipleHistoricalBars(List<String> symbols, int amount, ChronoUnit unit) {
+		HashMap<String, Bars> barsHashMap = new HashMap<String, Bars>();
+		String s = symbols.get(0);
+		for (String symbol : symbols) {
+			s += "," + symbol;
+		}
+		String nextPageToken = "";
+		while (nextPageToken != null) {
+			HashMap<String, String> args = new HashMap<String, String>();
+			args.put("symbols", s);
+			args.put("limit", "10000");
+			switch (unit) {
+			case DAYS:
+				args.put("timeframe", "1D");
+				break;
+			case HOURS:
+				args.put("timeframe", "1H");
+				break;
+			case MINUTES:
+				args.put("timeframe", "1T");
+				break;
+			default:
+				args.put("timeframe", "1D");
+				break;
+			}
+
+			args.put("limit", Integer.toString(amount));
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+			String startDate = formatter.format(Date.from(Instant.now().minus(amount, unit)));
+			args.put("start", startDate);
+			if (!nextPageToken.equals("")) {
+				args.put("page_token", nextPageToken);
+			}
+			JSONObject response = (JSONObject) APIRequest("v2/stocks/bars", args, "data", "GET");
+			try {
+				nextPageToken = response.getString("next_page_token");
+			} catch (Exception e) {
+				nextPageToken = null;
+			}
+			
+			JSONObject barsArray = response.getJSONObject("bars");
+			Iterator<String> keysIterator = barsArray.keys();
+			while (keysIterator.hasNext()) {
+				String symbolString = keysIterator.next().toString();
+				JSONArray arr = response.getJSONObject("bars").getJSONArray(symbolString);
+				boolean hashMapContains = barsHashMap.containsKey(symbolString);
+				Bars bars = new Bars();
+				for (int i = 0; i < arr.length(); i++) {
+					if (hashMapContains) {
+						barsHashMap.get(symbolString).add(new Bar(arr.getJSONObject(i), 0, 24, symbolString));
+					} else {
+						bars.add(new Bar(arr.getJSONObject(i), 0, 24, symbolString));
+					}
+				}
+				if (!hashMapContains) {
+					barsHashMap.put(symbolString, bars);
+				}
+			}
+		}
+		return barsHashMap;
 	}
 
 	public Account getAccount() {

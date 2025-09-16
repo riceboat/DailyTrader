@@ -7,13 +7,14 @@ import java.util.Date;
 import org.json.JSONObject;
 
 public class Bar {
-	float o;
-	float c;
-	float h;
-	float l;
+	public double o;
+	public double c;
+	public double h;
+	public double l;
 	Date end;
 	Date start;
 	public String symbol;
+
 	public Bar(JSONObject obj, int minutes, int hours, String symbol) {
 		this.o = obj.getFloat("o");
 		this.c = obj.getFloat("c");
@@ -25,11 +26,12 @@ public class Bar {
 		before = before.minus(Duration.ofMinutes(minutes));
 		this.start = Date.from(before);
 	}
+
 	public String toString() {
-		String s = "Open: " + Float.toString(o) + "\n";
-		s += "Close: " + Float.toString(c) + "\n";
-		s += "High: " + Float.toString(l) + "\n";
-		s += "Low: " + Float.toString(h) + "\n";
+		String s = "Open: " + Double.toString(o) + "\n";
+		s += "Close: " + Double.toString(c) + "\n";
+		s += "High: " + Double.toString(l) + "\n";
+		s += "Low: " + Double.toString(h) + "\n";
 		s += "From: " + start.toString() + "\n";
 		s += "To: " + end.toString() + "\n";
 		return s;

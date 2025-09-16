@@ -93,7 +93,6 @@ public class CorrelationMatrix {
 		for (Bars bars : barsList) {
 				Pair pair = new Pair(bars.symbol, bars2.symbol);
 				if (!ignoreList.contains(pair) && !bars.symbol.equals(bars2.symbol)) {
-					System.out.println(bars.symbol);
 					matrix.put(pair, bars.crossCorrelationAtLag(bars2, 0));
 					ignoreList.add(pair);
 				}

@@ -3,10 +3,10 @@ package dailyTrader;
 import org.json.JSONObject;
 
 public class Position {
-	String symbol;
-	float qty;
-	float pnl;
-	float pnlpc;
+	public String symbol;
+	public double qty;
+	double pnl;
+	double pnlpc;
 	String side;
 	public Position (JSONObject obj){
 		this.symbol = obj.getString("symbol");
@@ -16,6 +16,9 @@ public class Position {
 		this.side = obj.getString("side");
 	}
 	
+	public Position() {
+	}
+
 	public String toString() {
 		String s = "Symbol: " + this.symbol + "\n";
 		s += "Quantity: " + this.qty + "\n";

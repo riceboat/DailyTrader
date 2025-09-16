@@ -3,14 +3,25 @@ package dailyTrader;
 import java.util.ArrayList;
 
 public class Portfolio {
-	ArrayList<Position> positions;
-
-	public Portfolio() {
+	public ArrayList<Position> positions;
+	public double cash;
+	public Portfolio(double cash) {
 		positions = new ArrayList<Position>();
+		this.cash = cash;
 	}
 
 	public void addPosition(Position position) {
 		positions.add(position);
+	}
+	
+	public void removePosition(Position position) {
+		Position posToRemove = null;
+		for (Position pos : positions) {
+			if (pos.symbol.equals(position.symbol)) {
+				posToRemove = pos;
+			}
+		}
+		positions.remove(posToRemove);
 	}
 
 	public Position getPositionByCode(String code) {
