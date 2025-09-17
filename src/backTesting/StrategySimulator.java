@@ -45,40 +45,46 @@ public class StrategySimulator {
 		return possibleActions;
 	}
 
-	public void performTradingAction(TradingAction tradingAction) {
-		String symbol = tradingAction.codeString;
-		Side side = tradingAction.side;
-		double percent = tradingAction.percent;
-		double currentPrice = getAssetValue(symbol);
-		double qty = percent * (portfolio.cash / currentPrice);
-		switch (tradingAction.side) {
-		case LONG: {
-			Position newPosition = new Position(symbol, side, qty, currentPrice);
-			double cost = portfolio.cash * percent;
-			portfolio.cash -= cost;
-			portfolio.addPosition(newPosition);
-		}
-			break;
-		case SHORT: {
-			Position newPosition = new Position(symbol, side, qty, currentPrice);
-			double cost = portfolio.cash * percent;
-			portfolio.cash -= cost;
-			portfolio.addPosition(newPosition);
-		}
-			break;
-		case HOLD: {
+	public void reset() {
+		day = maxDays / 2;
+	}
 
-		}
-			break;
-		case SELL: {
-			Position position = portfolio.getPositionByCode(symbol);
-			double cost = percent * getAssetValue(symbol) * position.qty;
-			portfolio.cash += cost;
-			portfolio.removePosition(position);
-		}
-			break;
-		default:
-			break;
+	public void performTradingActions(ArrayList<TradingAction> tradingActions) {
+		for (TradingAction tradingAction : tradingActions) {
+			String symbol = tradingAction.codeString;
+			Side side = tradingAction.side;
+			double percent = tradingAction.percent;
+			double currentPrice = getAssetValue(symbol);
+			double qty = percent * (portfolio.cash / currentPrice);
+			switch (tradingAction.side) {
+			case LONG: {
+				Position newPosition = new Position(symbol, side, qty, currentPrice);
+				double cost = portfolio.cash * percent;
+				portfolio.cash -= cost;
+				portfolio.addPosition(newPosition);
+			}
+				break;
+			case SHORT: {
+				Position newPosition = new Position(symbol, side, qty, currentPrice);
+				double cost = portfolio.cash * percent;
+				portfolio.cash -= cost;
+				portfolio.addPosition(newPosition);
+			}
+				break;
+			case HOLD: {
+
+			}
+				break;
+			case SELL: {
+				Position position = portfolio.getPositionByCode(symbol);
+				double cost = percent * getAssetValue(symbol) * position.qty;
+				portfolio.cash += cost;
+				portfolio.removePosition(position);
+			}
+				break;
+			default:
+				break;
+			}
 		}
 	}
 
@@ -100,14 +106,14 @@ public class StrategySimulator {
 
 	public void step() {
 		ArrayList<TradingAction> possibleActions = getPossibleActions();
-		TradingAction bestTradingAction = strategy.decide(market.getBars(), portfolio, possibleActions, day);
+		ArrayList<TradingAction> bestActions = strategy.decide(market.getBars(), portfolio, possibleActions, day);
 		System.out.println("Start of day " + Integer.toString(day) + ":\n");
 		updatePortfolio();
 		System.out.println(portfolio);
 		System.out.println("POSSIBLE ACTIONS");
 		System.out.println(possibleActions);
-		System.out.println("SELECTED -> " + bestTradingAction);
-		performTradingAction(bestTradingAction);
+		System.out.println("SELECTED -> " + bestActions);
+		performTradingActions(bestActions);
 		day++;
 	}
 

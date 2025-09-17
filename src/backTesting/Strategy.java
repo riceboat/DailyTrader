@@ -14,22 +14,22 @@ public class Strategy {
 		
 	}
 	
-	public TradingAction decide(List<Bars> data, Portfolio portfolio, ArrayList<TradingAction> possibleActions, int day) {
-		TradingAction chosenAction = null;
+	public ArrayList<TradingAction> decide(List<Bars> data, Portfolio portfolio, ArrayList<TradingAction> possibleActions, int day) {
+		ArrayList<TradingAction>  chosenActions = new ArrayList<TradingAction>();
 		if (portfolio.cash > 0) {
 			for (TradingAction action : possibleActions) {
-				if (action.side == Side.SHORT) {
-					chosenAction = action;
+				if (action.side == Side.LONG) {
+					chosenActions.add(action);
 				}
 			}
 		}
 		else {
 			for (TradingAction action : possibleActions) {
 				if (action.side == Side.HOLD) {
-					chosenAction = action;
+					chosenActions.add(action);
 				}
 			}
 		}
-		return chosenAction;
+		return chosenActions;
 	}
 }
