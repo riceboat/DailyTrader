@@ -7,10 +7,11 @@ import dailyTrader.Bars;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
 import dailyTrader.Position;
+import dailyTrader.Side;
+import dailyTrader.Type;
 
 public class StrategySimulator {
 	Strategy strategy;
-	double cash;
 	Portfolio portfolio;
 	Market market;
 	int day;
@@ -18,7 +19,6 @@ public class StrategySimulator {
 
 	public StrategySimulator(Strategy strategy, Market market, Portfolio portfolio) {
 		this.strategy = strategy;
-		this.cash = portfolio.cash;
 		this.portfolio = portfolio;
 		this.market = market;
 		this.maxDays = market.getDays();
@@ -29,13 +29,16 @@ public class StrategySimulator {
 		ArrayList<TradingAction> possibleActions = new ArrayList<TradingAction>();
 		for (Bars bars : market.getBars()) {
 			Bar barToday = bars.get(bars.size() - 1);
-			if (barToday.c < cash) {
+			if (barToday.c < portfolio.cash) {
 				possibleActions.add(new TradingAction(Type.STOCK, Side.LONG, 1, barToday.symbol));
+				if (portfolio.cash > 2000) {
+					possibleActions.add(new TradingAction(Type.STOCK, Side.SHORT, 1, barToday.symbol));
+				}
 			}
 		}
 
 		for (Position position : portfolio.positions) {
-			possibleActions.add(new TradingAction(Type.STOCK, Side.SHORT, 1, position.symbol));
+			possibleActions.add(new TradingAction(Type.STOCK, Side.SELL, 1, position.symbol));
 			possibleActions.add(new TradingAction(Type.STOCK, Side.HOLD, 1, position.symbol));
 		}
 
@@ -43,29 +46,38 @@ public class StrategySimulator {
 	}
 
 	public void performTradingAction(TradingAction tradingAction) {
+		String symbol = tradingAction.codeString;
+		Side side = tradingAction.side;
+		double percent = tradingAction.percent;
+		double currentPrice = getAssetValue(symbol);
+		double qty = percent * (portfolio.cash / currentPrice);
 		switch (tradingAction.side) {
 		case LONG: {
-			Position newPosition = new Position();
-			newPosition.symbol = tradingAction.codeString;
-			double cost = cash;
-			newPosition.qty = cash / getAssetValue(tradingAction.codeString);
-			this.cash -= cost;
+			Position newPosition = new Position(symbol, side, qty, currentPrice);
+			double cost = portfolio.cash * percent;
+			portfolio.cash -= cost;
 			portfolio.addPosition(newPosition);
 		}
 			break;
 		case SHORT: {
-			Position position = portfolio.getPositionByCode(tradingAction.codeString);
-			double cost = tradingAction.percent * getAssetValue(tradingAction.codeString) * position.qty;
-			position.qty -= position.qty * tradingAction.percent;
-			this.cash += cost;
-			if (position.qty == 0.0) {
-				portfolio.removePosition(position);
-			}
+			Position newPosition = new Position(symbol, side, qty, currentPrice);
+			double cost = portfolio.cash * percent;
+			portfolio.cash -= cost;
+			portfolio.addPosition(newPosition);
 		}
 			break;
 		case HOLD: {
 
 		}
+			break;
+		case SELL: {
+			Position position = portfolio.getPositionByCode(symbol);
+			double cost = percent * getAssetValue(symbol) * position.qty;
+			portfolio.cash += cost;
+			portfolio.removePosition(position);
+		}
+			break;
+		default:
 			break;
 		}
 	}
@@ -76,33 +88,32 @@ public class StrategySimulator {
 				return bars.get(day).c;
 			}
 		}
+		System.err.println("????????????????");
 		return 0.0;
 	}
 
-	public double getNetWorth() {
-		double heldValue = 0.0;
+	public void updatePortfolio() {
 		for (Position position : portfolio.positions) {
-			double qty = position.qty;
-			heldValue += qty * getAssetValue(position.symbol);
+			position.update(getAssetValue(position.symbol));
 		}
-
-		return cash + heldValue;
 	}
 
 	public void step() {
 		ArrayList<TradingAction> possibleActions = getPossibleActions();
-		TradingAction bestTradingAction = strategy.decide(market.getBars(), possibleActions);
-		performTradingAction(bestTradingAction);
-		System.out.println(bestTradingAction);
+		TradingAction bestTradingAction = strategy.decide(market.getBars(), portfolio, possibleActions, day);
+		System.out.println("Start of day " + Integer.toString(day) + ":\n");
+		updatePortfolio();
 		System.out.println(portfolio);
+		System.out.println("POSSIBLE ACTIONS");
+		System.out.println(possibleActions);
+		System.out.println("SELECTED -> " + bestTradingAction);
+		performTradingAction(bestTradingAction);
 		day++;
 	}
 
 	public void run() {
-		double startWorth = getNetWorth();
 		while (day < maxDays - 2) {
 			step();
 		}
-		System.out.println(getNetWorth() - startWorth);
 	}
 }

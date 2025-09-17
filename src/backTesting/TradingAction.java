@@ -1,12 +1,7 @@
 package backTesting;
 
-enum Side {
-	LONG, SHORT, HOLD
-}
-
-enum Type {
-	STOCK, OPTION
-}
+import dailyTrader.Side;
+import dailyTrader.Type;
 
 public class TradingAction {
 	Side side;
@@ -24,9 +19,12 @@ public class TradingAction {
 	public String toString() {
 		String s = "";
 		if (side == Side.LONG) {
-			s += "BUY ";
+			s += "LONG ";
 		}
 		else if (side == Side.SHORT) {
+			s += "SHORT ";
+		}
+		else if (side == Side.SELL) {
 			s += "SELL ";
 		}
 		else if (side == Side.HOLD) {
@@ -39,6 +37,7 @@ public class TradingAction {
 		else if (type == Type.STOCK) {
 			s += "STOCK ";
 		}
+		s+="\n";
 		return s;
 	}
 }
