@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import dailyTrader.Bar;
 import dailyTrader.Bars;
+import dailyTrader.Market;
 import dailyTrader.Portfolio;
 import dailyTrader.Position;
 
@@ -11,22 +12,22 @@ public class StrategySimulator {
 	Strategy strategy;
 	double cash;
 	Portfolio portfolio;
-	ArrayList<Bars> data = new ArrayList<Bars>();
+	Market market;
 	int day;
 	int maxDays;
 
-	public StrategySimulator(Strategy strategy, ArrayList<Bars> data, Portfolio portfolio) {
+	public StrategySimulator(Strategy strategy, Market market, Portfolio portfolio) {
 		this.strategy = strategy;
 		this.cash = portfolio.cash;
 		this.portfolio = portfolio;
-		this.data = data;
-		this.maxDays = data.get(0).size();
+		this.market = market;
+		this.maxDays = market.getDays();
 		this.day = maxDays / 2;
 	}
 
 	public ArrayList<TradingAction> getPossibleActions() {
 		ArrayList<TradingAction> possibleActions = new ArrayList<TradingAction>();
-		for (Bars bars : data) {
+		for (Bars bars : market.getBars()) {
 			Bar barToday = bars.get(bars.size() - 1);
 			if (barToday.c < cash) {
 				possibleActions.add(new TradingAction(Type.STOCK, Side.LONG, 1, barToday.symbol));
@@ -70,7 +71,7 @@ public class StrategySimulator {
 	}
 
 	public double getAssetValue(String symbol) {
-		for (Bars bars : data) {
+		for (Bars bars : market.getBars()) {
 			if (symbol.equals(bars.symbol)) {
 				return bars.get(day).c;
 			}
@@ -90,9 +91,10 @@ public class StrategySimulator {
 
 	public void step() {
 		ArrayList<TradingAction> possibleActions = getPossibleActions();
-		TradingAction bestTradingAction = strategy.decide(data, possibleActions);
+		TradingAction bestTradingAction = strategy.decide(market.getBars(), possibleActions);
 		performTradingAction(bestTradingAction);
 		System.out.println(bestTradingAction);
+		System.out.println(portfolio);
 		day++;
 	}
 
