@@ -50,24 +50,32 @@ public class StrategySimulator {
 	}
 
 	public void performTradingActions(ArrayList<TradingAction> tradingActions) {
+		double totPercent = 0;
+		for (TradingAction tradingAction : tradingActions) {
+			totPercent += tradingAction.percent;
+		}
 		for (TradingAction tradingAction : tradingActions) {
 			String symbol = tradingAction.codeString;
 			Side side = tradingAction.side;
 			double percent = tradingAction.percent;
 			double currentPrice = getAssetValue(symbol);
-			double qty = percent * (portfolio.cash / currentPrice);
 			switch (tradingAction.side) {
 			case LONG: {
+				double cashCommitment = ((percent / totPercent) * portfolio.cash);
+				totPercent -= percent;
+				double qty = cashCommitment / currentPrice;
 				Position newPosition = new Position(symbol, side, qty, currentPrice);
-				double cost = portfolio.cash * percent;
-				portfolio.cash -= cost;
+				portfolio.cash -= cashCommitment;
 				portfolio.addPosition(newPosition);
 			}
 				break;
 			case SHORT: {
+				double cashCommitment = ((percent / totPercent) * portfolio.cash);
+				totPercent -= percent;
+				double qty = cashCommitment / currentPrice;
 				Position newPosition = new Position(symbol, side, qty, currentPrice);
 				double cost = portfolio.cash * percent;
-				portfolio.cash -= cost;
+				portfolio.cash -= cashCommitment;
 				portfolio.addPosition(newPosition);
 			}
 				break;
