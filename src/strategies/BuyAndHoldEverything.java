@@ -1,35 +1,33 @@
-package backTesting;
+package strategies;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import dailyTrader.Bars;
+import backTesting.TradingAction;
+import dailyTrader.Market;
 import dailyTrader.Portfolio;
 import dailyTrader.Side;
 
-public class Strategy {
+public class BuyAndHoldEverything implements Strategy {
 	int startDay = 0;
 
-	public Strategy() {
-
-	}
-
-	public ArrayList<TradingAction> decide(List<Bars> data, Portfolio portfolio,
+	@Override
+	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio,
 			ArrayList<TradingAction> possibleActions, int day) {
 		ArrayList<TradingAction> chosenActions = new ArrayList<TradingAction>();
 		if (portfolio.cash > 0) {
 			for (TradingAction action : possibleActions) {
-				if (action.side == Side.LONG) {
+				if (action.getSide() == Side.LONG) {
 					chosenActions.add(action);
 				}
 			}
 		} else {
 			for (TradingAction action : possibleActions) {
-				if (action.side == Side.HOLD) {
+				if (action.getSide() == Side.HOLD) {
 					chosenActions.add(action);
 				}
 			}
 		}
 		return chosenActions;
 	}
+
+
 }

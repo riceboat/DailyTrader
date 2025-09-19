@@ -9,6 +9,7 @@ import dailyTrader.Portfolio;
 import dailyTrader.Position;
 import dailyTrader.Side;
 import dailyTrader.Type;
+import strategies.Strategy;
 
 public class StrategySimulator {
 	Strategy strategy;
@@ -74,7 +75,6 @@ public class StrategySimulator {
 				totPercent -= percent;
 				double qty = cashCommitment / currentPrice;
 				Position newPosition = new Position(symbol, side, qty, currentPrice);
-				double cost = portfolio.cash * percent;
 				portfolio.cash -= cashCommitment;
 				portfolio.addPosition(newPosition);
 			}
@@ -114,7 +114,7 @@ public class StrategySimulator {
 
 	public void step() {
 		ArrayList<TradingAction> possibleActions = getPossibleActions();
-		ArrayList<TradingAction> bestActions = strategy.decide(market.getBars(), portfolio, possibleActions, day);
+		ArrayList<TradingAction> bestActions = strategy.decide(market.firstNDays(day), portfolio, possibleActions, day);
 		System.out.println("Start of day " + Integer.toString(day) + ":\n");
 		updatePortfolio();
 		System.out.println(portfolio);

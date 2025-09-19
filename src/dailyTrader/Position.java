@@ -50,7 +50,7 @@ public class Position {
 		s += "P&L: " + this.pnl + "\n";
 		s += "P&L  %: " + this.pnlpc + "\n";
 		s += "Side: " + this.side + "\n";
-		s += "Entry Price: " + Double.toString(entryPrice) + "\n";
+		s += "Entry Price: " + Double.toString(entryPrice) + "\n\n";
 		return s;
 	}
 }

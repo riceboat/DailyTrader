@@ -40,4 +40,12 @@ public class TradingAction {
 		s+="\n";
 		return s;
 	}
+
+	public Side getSide() {
+		return side;
+	}
+	
+	public String getSymbol() {
+		return codeString;
+	}
 }

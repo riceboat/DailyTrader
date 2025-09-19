@@ -46,7 +46,7 @@ public class Portfolio {
 			pnl += position.pnl;
 		}
 		s += "Portfolio value: " + Double.toString(value) + "\n";
-		s += "PNL: " + Double.toString(pnl) + "\n";
+		s += "Portfolio PNL: " + Double.toString(pnl) + "\n\n";
 		for (Position position : positions) {
 			s += position.toString();
 		}

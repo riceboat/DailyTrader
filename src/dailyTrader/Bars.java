@@ -92,13 +92,17 @@ public class Bars {
 		}
 		return newBars;
 	}
-	
+
 	public Bars getNFirstDays(int days) {
 		Bars newBars = new Bars();
 		for (int i = 0; i < days; i++) {
 			newBars.add(bars.get(i));
 		}
 		return newBars;
+	}
+
+	public double getSMALastNDays(int days) {
+		return getNLastDays(days).getAverage();
 	}
 
 	public double crossCorrelationAtLag(Bars bars2, int lag) {

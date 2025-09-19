@@ -26,6 +26,22 @@ public class Market {
 		return new ArrayList<Bars>(symbolBars.values());
 	}
 
+	public Bars getSymbolBars(String symbol) {
+		return symbolBars.get(symbol);
+	}
+
+	public Market firstNDays(int days) {
+		ArrayList<Bars> newData = new ArrayList<Bars>();
+		for (Entry<String, Bars> entry : symbolBars.entrySet()) {
+			Bars newBars = new Bars();
+			for (int i = 0; i < days; i++) {
+				newBars.add(entry.getValue().get(i));
+			}
+			newData.add(newBars);
+		}
+		return new Market(newData);
+	}
+
 	public void saveData(String path) {
 		try (FileWriter csvWriter = new FileWriter(path)) {
 			for (Entry<String, Bars> entry : symbolBars.entrySet()) {

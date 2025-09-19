@@ -3,7 +3,7 @@ package dailyTrader;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 
-import backTesting.Strategy;
+import strategies.*;
 import backTesting.StrategySimulator;
 
 public class MainClass {
@@ -16,12 +16,15 @@ public class MainClass {
 		tickers.add("NVDA");
 		tickers.add("TSLA");
 		tickers.add("AAPL");
+		tickers.add("AMD");
+		tickers.add("GOOG");
 		for (String ticker : tickers) {
 			data.add(apiManager.getHistoricalBars(ticker, 365, ChronoUnit.DAYS));
 		}
 		Portfolio portfolio = apiManager.getPortfolio();
 		Market market = new Market(data);
-		StrategySimulator simulator = new StrategySimulator(new Strategy(), market, portfolio);
+		Strategy strategy = new MACDBestSingleStock(24, 12, 9);
+		StrategySimulator simulator = new StrategySimulator(strategy, market, portfolio);
 		simulator.run();
 	}
 }
