@@ -6,11 +6,28 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 public class Market {
 	private HashMap<String, Bars> symbolBars;
 	private int days;
 
 	public Market(ArrayList<Bars> data) {
+		symbolBars = new HashMap<String, Bars>();
+		days = data.get(0).size();
+		for (Bars bars : data) {
+			symbolBars.put(bars.symbol, bars);
+		}
+	}
+
+	public Market(JSONObject marketJSON) {
+		ArrayList<Bars> data = new ArrayList<Bars>();
+		JSONArray jsonArray = marketJSON.getJSONArray("market");
+		for (int i = 0; i < jsonArray.length(); i++) {
+			JSONObject barsObject = jsonArray.getJSONObject(i);
+			data.add(new Bars(barsObject));
+		}
 		symbolBars = new HashMap<String, Bars>();
 		days = data.get(0).size();
 		for (Bars bars : data) {
@@ -51,5 +68,16 @@ public class Market {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public JSONObject toJSON() {
+		JSONObject jsonMarket = new JSONObject();
+		JSONArray jsonBarsArray = new JSONArray();
+		for (Entry<String, Bars> entry : symbolBars.entrySet()) {
+			Bars bars = entry.getValue();
+			jsonBarsArray.put(bars.toJSON());
+		}
+		jsonMarket.put("market", jsonBarsArray);
+		return jsonMarket;
 	}
 }

@@ -301,7 +301,6 @@ public class APIManager {
 	}
 
 	public Bars getHistoricalBars(String symbol, int amount, ChronoUnit unit) {
-		Bars bars = new Bars();
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("symbols", symbol);
 		switch (unit) {
@@ -324,10 +323,18 @@ public class APIManager {
 		args.put("start", startDate);
 		JSONObject response = (JSONObject) APIRequest("v2/stocks/bars", args, "data", "GET");
 		JSONArray arr = response.getJSONObject("bars").getJSONArray(symbol);
-		for (int i = 0; i < arr.length(); i++) {
-			bars.add(new Bar(arr.getJSONObject(i), 0, 24, symbol));
+		JSONObject barObject = new JSONObject();
+		barObject.put(symbol, arr);
+		return new Bars(barObject);
+	}
+
+	public Market createMarketFromTickers(ArrayList<String> tickers) {
+		ArrayList<Bars> data = new ArrayList<Bars>();
+		for (String ticker : tickers) {
+			Bars bars = getHistoricalBars(ticker, 365, ChronoUnit.DAYS);
+			data.add(bars);
 		}
-		return bars;
+		return new Market(data);
 	}
 
 	public HashMap<String, Bars> getMultipleHistoricalBars(List<String> symbols, int amount, ChronoUnit unit) {
@@ -369,7 +376,7 @@ public class APIManager {
 			} catch (Exception e) {
 				nextPageToken = null;
 			}
-			
+
 			JSONObject barsArray = response.getJSONObject("bars");
 			Iterator<String> keysIterator = barsArray.keys();
 			while (keysIterator.hasNext()) {

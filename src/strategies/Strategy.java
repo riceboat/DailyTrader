@@ -1,10 +1,7 @@
 package strategies;
 
 import java.util.ArrayList;
-import java.util.List;
-
 import backTesting.TradingAction;
-import dailyTrader.Bars;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
 

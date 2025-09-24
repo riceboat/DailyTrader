@@ -1,7 +1,10 @@
 package dailyTrader;
 
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import org.json.JSONObject;
@@ -35,5 +38,17 @@ public class Bar {
 		s += "From: " + start.toString() + "\n";
 		s += "To: " + end.toString() + "\n";
 		return s;
+	}
+
+	public JSONObject toJSON() {
+		JSONObject jsonBar = new JSONObject();
+		jsonBar.put("o", o);
+		jsonBar.put("c", c);
+		jsonBar.put("h", h);
+		jsonBar.put("l", l);
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+		String isoDate = dateFormatter.format(end);
+		jsonBar.put("t", isoDate);
+		return jsonBar;
 	}
 }

@@ -1,6 +1,10 @@
 package dailyTrader;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class Bars {
 	ArrayList<Bar> bars;
@@ -10,6 +14,18 @@ public class Bars {
 		bars = new ArrayList<Bar>();
 	}
 
+	public Bars(JSONObject barsObject) {
+		Iterator<String> keyIterator = barsObject.keys(); //hacky solution to get key
+		this.symbol = keyIterator.next();
+		bars = new ArrayList<Bar>();
+		JSONArray barsArray = barsObject.getJSONArray(symbol);
+		for (int i = 0; i < barsArray.length(); i++) {
+			Bar bar = new Bar(barsArray.getJSONObject(i), 0, 24, symbol);
+			this.add(bar);
+			
+		}
+	}
+	
 	public void add(Bar bar) {
 		bars.add(bar);
 		symbol = bar.symbol;
@@ -118,5 +134,16 @@ public class Bars {
 		}
 		double result = sum / this.size();
 		return Math.round(result * 100.0) / 100.0;
+	}
+
+	public JSONObject toJSON() {
+		JSONObject jsonBars = new JSONObject();
+		JSONArray jsonBarArray = new JSONArray();
+		for (Bar bar : bars) {
+			JSONObject jsonBar = bar.toJSON();
+			jsonBarArray.put(jsonBar);
+		}
+		jsonBars.put(symbol, jsonBarArray);
+		return jsonBars;
 	}
 }
