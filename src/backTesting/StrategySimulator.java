@@ -125,9 +125,14 @@ public class StrategySimulator {
 		day++;
 	}
 
-	public void run() {
+	public Bars run() {
+		Bars portfolioBars = new Bars();
 		while (day < maxDays - 2) {
+			Bar oldBar = market.getBars().get(0).get(day);
+			Bar newBar = new Bar("NVDA", portfolio.getValue(), oldBar.start, oldBar.end);
+			portfolioBars.add(newBar);
 			step();
 		}
+		return portfolioBars;
 	}
 }

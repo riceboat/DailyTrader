@@ -7,6 +7,7 @@ import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Scanner;
+import java.util.concurrent.Callable;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -15,7 +16,7 @@ import com.sun.net.httpserver.HttpServer;
 public class Server {
 	private HttpServer server;
 	static String indexPageURI;
-
+	ServerEventHandler eventHandler;
 	public Server() {
 		indexPageURI = "/";
 		try {
@@ -35,38 +36,46 @@ public class Server {
 		server.stop(0);
 		;
 	}
-
-	static String readHTML(String htmlPath) {
+	public void addEventHandler(ServerEventHandler eventHandler) {
+		this.eventHandler = eventHandler;
+	}
+	static String readFile(String filePath) {
 		try {
-			return Files.readString(Paths.get(htmlPath));
+			return Files.readString(Paths.get(filePath));
 		} catch (IOException e) {
 			return null;
 		}
 	}
-	
-	static class MyHandler implements HttpHandler {
+
+	class MyHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
-			System.out.println(t.getRequestMethod());
-			String uriString  = t.getRequestURI().toString().substring(1); 
+			String uriString = t.getRequestURI().toString().substring(1);
+			String response = null;
 			InputStream inputStream = t.getRequestBody();
 			Scanner s = new Scanner(inputStream).useDelimiter("\\A");
-			String result = s.hasNext() ? s.next() : "";
-			System.out.println(result);
-			System.out.println(uriString);
-			String response;
-			response = readHTML(uriString); //FIX LATER MASSIVE SECURITY ISSUE
-			System.out.println(response);
-			if (response == null){
-				response = readHTML("pages/404.html");
-				t.sendResponseHeaders(404, response.length());
+			String requestString = s.hasNext() ? s.next() : "";
+			s.close();
+			if (t.getRequestMethod().equals("GET")) {
+				response = readFile(uriString); // FIX LATER MASSIVE SECURITY ISSUE
+				if (response == null) {
+					response = readFile("pages/404.html");
+					t.sendResponseHeaders(404, response.length());
+				} else {
+					t.sendResponseHeaders(200, response.length());
+				}
 			}
-			else {
+			else if (t.getRequestMethod().equals("POST")) {
+				try {
+					eventHandler.call(requestString);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				response = readFile("pages/index.html");
 				t.sendResponseHeaders(200, response.length());
 			}
-			
+
 			OutputStream os = t.getResponseBody();
-			System.out.println(t.getResponseCode());
 			os.write(response.getBytes());
 			os.close();
 		}

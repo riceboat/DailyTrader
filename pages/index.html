@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <div id="container"></div>
+
+<form action="" method="post">
+    <input type="submit" name="upvote" value="Upvote" />
+</form>
+
 <script src = "https://d3js.org/d3.v4.js"></script>
 <script>
 
 // set the dimensions and margins of the graph
 var margin = {top: 10, right: 30, bottom: 30, left: 60},
-    width = 460 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
+    width = 1000 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
 var svg = d3.select("#container")
@@ -18,19 +23,23 @@ var svg = d3.select("#container")
           "translate(" + margin.left + "," + margin.top + ")");
 
 //Read the data
-d3.json("../data/NVDA30.json",
-
-  // When reading the csv, I must format variables:
-  function(d){
-    return { date : d3.timeParse("%Y-%m-%d")(d.date), value : d.value }
-  },
-
-  // Now I can use this dataset:
-  function(data) {
-
+d3.json("../data/graphData.json",
+ 
+  // When reading the json, I must format variables:
+  function(data){
+	var rawData = data.NVDA;
+	const parsed = rawData.map(d => ({
+	            ...d,
+	            t: d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(d.t), // Convert date string to Date object
+	            o: +d.o,
+	            h: +d.h,
+	            l: +d.l,
+	            c: +d.c
+	        }));
+	console.log(parsed);
     // Add X axis --> it is a date format
     var x = d3.scaleTime()
-      .domain(d3.extent(data, function(d) { return d.date; }))
+      .domain(d3.extent(parsed, function(d) { return d.t; }))
       .range([ 0, width ]);
     svg.append("g")
       .attr("transform", "translate(0," + height + ")")
@@ -38,20 +47,20 @@ d3.json("../data/NVDA30.json",
 
     // Add Y axis
     var y = d3.scaleLinear()
-      .domain([0, d3.max(data, function(d) { return +d.value; })])
+      .domain([d3.min(parsed, function(d) { return +d.c; }), d3.max(parsed, function(d) { return +d.c; })])
       .range([ height, 0 ]);
     svg.append("g")
       .call(d3.axisLeft(y));
 
     // Add the line
     svg.append("path")
-      .datum(data)
+      .datum(parsed)
       .attr("fill", "none")
       .attr("stroke", "steelblue")
       .attr("stroke-width", 1.5)
       .attr("d", d3.line()
-        .x(function(d) { return x(d.date) })
-        .y(function(d) { return y(d.value) })
+        .x(function(d) { return x(d.t) })
+        .y(function(d) { return y(d.c) })
         )
 
 })

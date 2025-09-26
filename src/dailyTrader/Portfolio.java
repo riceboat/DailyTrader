@@ -33,15 +33,18 @@ public class Portfolio {
 		}
 		return null;
 	}
-
-	public String toString() {
-		String s = "";
-		s += "Portfolio cash: " + Double.toString(cash) + "\n";
+	public double getValue() {
 		double value = cash;
-		double pnl = 0;
 		for (Position position : positions) {
 			value += position.qty * position.entryPrice + position.pnl;
 		}
+		return value;
+	}
+	public String toString() {
+		String s = "";
+		s += "Portfolio cash: " + Double.toString(cash) + "\n";
+		double value = getValue();
+		double pnl = 0;
 		for (Position position : positions) {
 			pnl += position.pnl;
 		}

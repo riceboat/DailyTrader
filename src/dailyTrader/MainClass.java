@@ -1,11 +1,11 @@
 package dailyTrader;
 
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 
 import strategies.*;
 import backTesting.StrategySimulator;
 import serverHosting.Server;
+import serverHosting.ServerEventHandler;
 
 public class MainClass {
 	public static void main(String args[]) {
@@ -20,18 +20,17 @@ public class MainClass {
 		tickers.add("AMD");
 		tickers.add("GOOG");
 
-		//Portfolio portfolio = apiManager.getPortfolio();
+		Portfolio portfolio = apiManager.getPortfolio();
 		JSONManager jsonManager = new JSONManager();
-		//Market market = apiManager.createMarketFromTickers(tickers);
-		jsonManager.writeToJSONFile(apiManager.getHistoricalBars("NVDA", 30, ChronoUnit.HOURS), "data/NVDA30");
-		jsonManager.writeToJSONFile(apiManager.getHistoricalBars("NVDA", 60, ChronoUnit.HOURS), "data/NVDA60");
-		//Market market = jsonManager.readMarketFromFile("market.json");
-		//Strategy strategy = new MACDBestSingleStock(24, 12, 9);
+		Market market = jsonManager.readMarketFromFile("market.json");
+		Strategy strategy = new MACDBestSingleStock(24, 12, 9);
 		//strategy = new BuyAndHoldEverything();
-		//StrategySimulator simulator = new StrategySimulator(strategy, market, portfolio);
-		//simulator.run();
+		StrategySimulator simulator = new StrategySimulator(strategy, market, portfolio);
+		Bars simBars = simulator.run();
+		jsonManager.writeToJSONFile(simBars, "data/graphData");
 		Server server = new Server();
+		ServerEventHandler eventHandler = new ServerEventHandler(apiManager);
+		server.addEventHandler(eventHandler);
 		server.startServer();
 	}
-
 }

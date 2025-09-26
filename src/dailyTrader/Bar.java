@@ -3,8 +3,6 @@ package dailyTrader;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import org.json.JSONObject;
@@ -14,8 +12,8 @@ public class Bar {
 	public double c;
 	public double h;
 	public double l;
-	Date end;
-	Date start;
+	public Date end;
+	public Date start;
 	public String symbol;
 
 	public Bar(JSONObject obj, int minutes, int hours, String symbol) {
@@ -29,7 +27,12 @@ public class Bar {
 		before = before.minus(Duration.ofMinutes(minutes));
 		this.start = Date.from(before);
 	}
-
+	public Bar(String symbol, double c, Date start, Date end) {
+		this.c = c;
+		this.start = start;
+		this.end = end;
+		this.symbol = symbol;
+	}
 	public String toString() {
 		String s = "Open: " + Double.toString(o) + "\n";
 		s += "Close: " + Double.toString(c) + "\n";
