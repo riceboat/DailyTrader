@@ -120,7 +120,13 @@ public class Bars {
 	public double getSMALastNDays(int days) {
 		return getNLastDays(days).getAverage();
 	}
-
+	public ArrayList<Double> getValues(){
+		ArrayList<Double> values = new ArrayList<Double>();
+		for (Bar bar : bars) {
+			values.add(bar.c);
+		}
+		return values;
+	}
 	public double crossCorrelationAtLag(Bars bars2, int lag) {
 		double meanA = this.getAverageReturn();
 		double meanB = bars2.getAverageReturn();

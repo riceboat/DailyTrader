@@ -120,6 +120,7 @@ public class StrategySimulator {
 		System.out.println("POSSIBLE ACTIONS");
 		System.out.println(possibleActions);
 		System.out.println("SELECTED -> " + bestActions);
+		System.out.println(portfolio);
 		performTradingActions(bestActions);
 		day++;
 	}

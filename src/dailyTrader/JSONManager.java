@@ -17,7 +17,6 @@ public class JSONManager {
 
 	public void writeToJSONFile(Bars bars, String filePath) {
 		JSONObject json = bars.toJSON();
-		System.out.println(json.toString());
 		try (PrintWriter myFile = new PrintWriter(filePath + ".json", "UTF-8")) {
 			myFile.println(json);
 			myFile.close();

@@ -51,7 +51,7 @@ public class MACDBestSingleStock implements Strategy {
 				double macd = actionBars.getSMALastNDays(shortMA) - actionBars.getSMALastNDays(longMA);
 				double signal = actionBars.getSMALastNDays(signalMA);
 				double actionDiff = macd - signal;
-				System.out.println(actionDiff);
+				//System.out.println(actionDiff);
 				if (actionDiff > 0) {
 					chosenActions.add(action);
 				}
