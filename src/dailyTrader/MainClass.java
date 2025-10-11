@@ -23,14 +23,15 @@ public class MainClass {
 		Portfolio portfolio = apiManager.getPortfolio();
 		JSONManager jsonManager = new JSONManager();
 		Market market = jsonManager.readMarketFromFile("market.json");
+		//market = apiManager.createMarketFromTickers(tickers, 365 * 10);
 		Strategy strategy = new MACDBestSingleStock(24, 12, 9);
 		//strategy = new BuyAndHoldEverything();
 		StrategySimulator simulator = new StrategySimulator(strategy, market, portfolio);
-		Bars simBars = simulator.run();
-		jsonManager.writeToJSONFile(simBars, "data/graphData");
+		//jsonManager.writeToJSONFile(market, "data/market");
 		Server server = new Server();
 		ServerEventHandler eventHandler = new ServerEventHandler(apiManager);
 		server.addEventHandler(eventHandler);
 		server.startServer();
+		
 	}
 }

@@ -321,6 +321,7 @@ public class APIManager {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 		String startDate = formatter.format(Date.from(Instant.now().minus(amount, unit)));
 		args.put("start", startDate);
+		args.put("adjustment", "split");
 		JSONObject response = (JSONObject) APIRequest("v2/stocks/bars", args, "data", "GET");
 		JSONArray arr = response.getJSONObject("bars").getJSONArray(symbol);
 		JSONObject barObject = new JSONObject();
@@ -328,10 +329,10 @@ public class APIManager {
 		return new Bars(barObject);
 	}
 
-	public Market createMarketFromTickers(ArrayList<String> tickers) {
+	public Market createMarketFromTickers(ArrayList<String> tickers, int days) {
 		ArrayList<Bars> data = new ArrayList<Bars>();
 		for (String ticker : tickers) {
-			Bars bars = getHistoricalBars(ticker, 365, ChronoUnit.DAYS);
+			Bars bars = getHistoricalBars(ticker, days, ChronoUnit.DAYS);
 			data.add(bars);
 		}
 		return new Market(data);
