@@ -19,14 +19,11 @@ public class MainClass {
 		tickers.add("AAPL");
 		tickers.add("AMD");
 		tickers.add("GOOG");
-
-		Portfolio portfolio = apiManager.getPortfolio();
 		JSONManager jsonManager = new JSONManager();
-		Market market = jsonManager.readMarketFromFile("market.json");
+		Portfolio portfolio = apiManager.getPortfolio();
+		jsonManager.writeToJSONFile(portfolio, "data/portfolio");	
+		//Market market = jsonManager.readMarketFromFile("market.json");
 		//market = apiManager.createMarketFromTickers(tickers, 365 * 10);
-		Strategy strategy = new MACDBestSingleStock(24, 12, 9);
-		//strategy = new BuyAndHoldEverything();
-		StrategySimulator simulator = new StrategySimulator(strategy, market, portfolio);
 		//jsonManager.writeToJSONFile(market, "data/market");
 		Server server = new Server();
 		ServerEventHandler eventHandler = new ServerEventHandler(apiManager);

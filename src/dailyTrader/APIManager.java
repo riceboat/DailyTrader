@@ -131,11 +131,30 @@ public class APIManager {
 		}
 		return orders;
 	}
-
+	public Bars getPortfolioHistory() {
+		Bars portfolioHistoryBars = new Bars();
+		HashMap<String, String> args = new HashMap<String, String>();
+		args.put("timeframe", "1D");
+		args.put("period", "1A");
+		JSONObject response = (JSONObject) APIRequest("v2/account/portfolio/history", args, "api", "GET");
+		JSONArray equityArray = response.getJSONArray("equity");
+		JSONArray timestampArray = response.getJSONArray("timestamp");
+		for (int i = 0; i < equityArray.length(); i++) {
+			int unixEpoch = timestampArray.getInt(i);
+			Date startDate = new Date((long)unixEpoch * 1000);
+			Date endDate = new Date((long)unixEpoch * 1000);
+			endDate.setDate(endDate.getDate() + 1);
+			Bar bar = new Bar("history",equityArray.getDouble(i), startDate, endDate);
+			portfolioHistoryBars.add(bar);
+		}
+		return portfolioHistoryBars;
+	}
 	public Portfolio getPortfolio() {
 		HashMap<String, String> args = new HashMap<String, String>();
 		JSONArray response = (JSONArray) APIRequest("v2/positions", args, "api", "GET");
-		Portfolio portfolio = new Portfolio(getAccount().cash);
+		
+		Bars portfolioHistoryBars = getPortfolioHistory();
+		Portfolio portfolio = new Portfolio(portfolioHistoryBars);
 		for (int i = 0; i < response.length(); i++) {
 			portfolio.addPosition(new Position(response.getJSONObject(i)));
 		}

@@ -55,4 +55,17 @@ public class JSONManager {
 		JSONObject marketJSON = new JSONObject(readJSONFile(filePath));
 		return new Market(marketJSON);
 	}
+
+	public void writeToJSONFile(Portfolio portfolio, String filePath) {
+		JSONObject json = portfolio.getHistory().toJSON();
+		try (PrintWriter myFile = new PrintWriter(filePath + ".json", "UTF-8")) {
+			myFile.println(json);
+			myFile.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+	}
 }

@@ -4,17 +4,20 @@ import java.util.ArrayList;
 
 public class Portfolio {
 	public ArrayList<Position> positions;
+	public Bars portfolioHistoryBars;
 	public double cash;
-
-	public Portfolio(double cash) {
+	public Portfolio(Bars portfolioHistoryBars) {
 		positions = new ArrayList<Position>();
-		this.cash = cash;
+		this.portfolioHistoryBars = portfolioHistoryBars;
+		this.cash = portfolioHistoryBars.get(portfolioHistoryBars.size()-1).c;
 	}
 
 	public void addPosition(Position position) {
 		positions.add(position);
 	}
-
+	public Bars getHistory() {
+		return portfolioHistoryBars;
+	}
 	public void removePosition(Position position) {
 		Position posToRemove = null;
 		for (Position pos : positions) {
