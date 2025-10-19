@@ -131,7 +131,7 @@ public class APIManager {
 		}
 		return orders;
 	}
-	public Bars getPortfolioHistory() {
+	public Bars getPortfolioHistory(int numDays) {
 		Bars portfolioHistoryBars = new Bars();
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("timeframe", "1D");
@@ -149,11 +149,11 @@ public class APIManager {
 		}
 		return portfolioHistoryBars;
 	}
-	public Portfolio getPortfolio() {
+	public Portfolio getPortfolio(int numDays) {
 		HashMap<String, String> args = new HashMap<String, String>();
 		JSONArray response = (JSONArray) APIRequest("v2/positions", args, "api", "GET");
 		
-		Bars portfolioHistoryBars = getPortfolioHistory();
+		Bars portfolioHistoryBars = getPortfolioHistory(numDays);
 		Portfolio portfolio = new Portfolio(portfolioHistoryBars);
 		for (int i = 0; i < response.length(); i++) {
 			portfolio.addPosition(new Position(response.getJSONObject(i)));

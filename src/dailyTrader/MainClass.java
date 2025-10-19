@@ -12,5 +12,6 @@ public class MainClass {
 		ServerEventHandler eventHandler = new ServerEventHandler(apiManager);
 		server.addEventHandler(eventHandler);
 		server.startServer();
+		//System.out.println(apiManager.getMostActiveSymbols(30));
 	}
 }

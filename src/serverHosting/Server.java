@@ -15,6 +15,7 @@ public class Server {
 	private HttpServer server;
 	static String indexPageURI;
 	ServerEventHandler eventHandler;
+
 	public Server() {
 		indexPageURI = "/";
 		try {
@@ -34,14 +35,27 @@ public class Server {
 		server.stop(0);
 		;
 	}
+
 	public void addEventHandler(ServerEventHandler eventHandler) {
 		this.eventHandler = eventHandler;
 	}
+
 	static String readFile(String filePath) {
 		try {
 			return Files.readString(Paths.get(filePath));
 		} catch (IOException e) {
 			return null;
+		}
+	}
+
+	String responseHandler(String uriString, String requestString) {
+		if (uriString.equals("")) {
+			return readFile("pages/index.html");
+		} else if (uriString.equals("api")) {
+			System.out.println("APICALL");
+			return eventHandler.call(requestString);
+		} else {
+			return readFile(uriString);
 		}
 	}
 
@@ -55,21 +69,15 @@ public class Server {
 			String requestString = s.hasNext() ? s.next() : "";
 			s.close();
 			if (t.getRequestMethod().equals("GET")) {
-				response = readFile(uriString); // FIX LATER MASSIVE SECURITY ISSUE
+				response = responseHandler(uriString, requestString);
 				if (response == null) {
 					response = readFile("pages/404.html");
 					t.sendResponseHeaders(404, response.length());
 				} else {
 					t.sendResponseHeaders(200, response.length());
 				}
-			}
-			else if (t.getRequestMethod().equals("POST")) {
-				try {
-					eventHandler.call(requestString);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				response = readFile("pages/index.html");
+			} else if (t.getRequestMethod().equals("POST")) {
+				response = responseHandler(uriString, requestString);
 				t.sendResponseHeaders(200, response.length());
 			}
 

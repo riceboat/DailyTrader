@@ -15,30 +15,6 @@ public class JSONManager {
 
 	}
 
-	public void writeToJSONFile(Bars bars, String filePath) {
-		JSONObject json = bars.toJSON();
-		try (PrintWriter myFile = new PrintWriter(filePath + ".json", "UTF-8")) {
-			myFile.println(json);
-			myFile.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void writeToJSONFile(Market market, String filePath) {
-		JSONObject json = market.toJSON();
-		try (PrintWriter myFile = new PrintWriter(filePath + ".json", "UTF-8")) {
-			myFile.println(json);
-			myFile.close();
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
-		}
-	}
-
 	String readJSONFile(String filePath) {
 		byte[] encoded;
 		try {
@@ -55,17 +31,19 @@ public class JSONManager {
 		JSONObject marketJSON = new JSONObject(readJSONFile(filePath));
 		return new Market(marketJSON);
 	}
+	
+	public String toJSONString(JSONConvertible object) {
+		return object.toJSON().toString();
+	}
 
-	public void writeToJSONFile(Portfolio portfolio, String filePath) {
-		JSONObject json = portfolio.getHistory().toJSON();
+	public void toJSONFile(JSONConvertible object, String filePath) {
 		try (PrintWriter myFile = new PrintWriter(filePath + ".json", "UTF-8")) {
-			myFile.println(json);
+			myFile.println(object.toJSON());
 			myFile.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		
 	}
 }

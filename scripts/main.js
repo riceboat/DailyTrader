@@ -1,7 +1,7 @@
 
 // set the dimensions and margins of the graph
 divId = 0;
-function displayMarketGraph(graphNum){
+function displayMarketGraph(symbolString){
 var margin = {top: 10, right: 30, bottom: 30, left: 60},
     width = 1000 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
@@ -16,12 +16,11 @@ var svg = d3.select("#marketGraphContainer")
   .append("g")
     .attr("transform",
           "translate(" + margin.left + "," + margin.top + ")");
-d3.json("../data/market.json",
+d3.request("api").post("bars="+symbolString,
  
   function readData(data){
-	var rawData  = data.market.map((obj) => Object.values(obj)[0]);
-	
-	const parsed = rawData[graphNum].map(d => ({
+	data = JSON.parse(data.response);
+	const parsed = data[symbolString].map(d => ({
 			            ...d,
 			            t: d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(d.t), // Convert date string to Date object
 			            o: +d.o,
@@ -55,21 +54,25 @@ d3.json("../data/market.json",
 	  	        .y(function(d) { return y(d.c) })
 	  	        )
 	
-	  var tickerSelect = document.getElementById("ticker");
-	  var option = document.createElement("option");
-	  option.setAttribute("id", "tickerOption");
-	  option.value = graphNum;
-	  option.text = Object.keys(data.market[graphNum]);
-	  tickerSelect.appendChild(option);
-	  		for (var i = 0; i < rawData.length; i++) {
-				if (i != graphNum){
-					var option = document.createElement("option");
-					option.setAttribute("id", "tickerOption");
-	  		    	option.value = i;
-	  		    	option.text = Object.keys(data.market[i]);
-	  		    	tickerSelect.appendChild(option);
-				}
-	  		}
+	  d3.request("api").post("topStocks=30",
+	  			function readData(data){
+					
+	  				data = JSON.parse(data.response);
+					console.log(data);
+	  				var names = data.topStocks;
+	  				var tickerSelect = document.getElementById("tickerSelect");
+	  				names.forEach(function readName(name, i, a){
+	  					var option = document.createElement("option");
+	  						  		    	option.value = name;
+	  						  		    	option.text = name;
+	  										option.setAttribute("id", "tickerOption");
+	  						  		    	tickerSelect.appendChild(option);
+	  										if (name == symbolString){
+	  											option.setAttribute("selected", "");
+	  										}
+	  				});
+	  			}
+	  		);
 })
 }
 function displayPortfolioGraph(graphNum){
@@ -87,9 +90,9 @@ var svg = d3.select("#portfolioGraphContainer")
   .append("g")
     .attr("transform",
           "translate(" + margin.left + "," + margin.top + ")");
-d3.json("../data/portfolio.json",
- 
+d3.request("api").post("portfolio=1",
   function readData(data){
+	data = JSON.parse(data.response);
 	const parsed = data.history.map(d => ({
 			            ...d,
 			            t: d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(d.t), // Convert date string to Date object
@@ -140,7 +143,7 @@ d3.json("../data/portfolio.json",
 })
 }
 
-function displayStrategyGraph(graphNum){
+function displayStrategyGraph(strategyName){
 var margin = {top: 10, right: 30, bottom: 30, left: 60},
     width = 1000 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
@@ -156,21 +159,23 @@ var svg = d3.select("#strategyGraphContainer")
     .attr("transform",
           "translate(" + margin.left + "," + margin.top + ")");
 
-d3.json("../data/lastStrategy.json",
-  function readData(data){
+d3.request("api").post("strategy="+strategyName,
+  function readData(error, data){
+	if (error) throw error;
 	var selectedStrategy = "";
+	data = JSON.parse(data.response);
 	selectedStrategy = Object.keys(data)[0];
-	d3.json("../data/strategyNames.json",
+	d3.request("api").post("strategyNames=1",
 			function readData(data){
+				data = JSON.parse(data.response);
 				var names = data.strategyNames;
 				var strategySelect = document.getElementById("strategySelect");
 				names.forEach(function readName(name, i, a){
 					var option = document.createElement("option");
 						  		    	option.value = name;
 						  		    	option.text = name;
+										option.setAttribute("id", "strategyOption");
 						  		    	strategySelect.appendChild(option);
-										console.log(name);
-										console.log(selectedStrategy);
 										if (name == selectedStrategy){
 											option.setAttribute("selected", "");
 										}
@@ -213,29 +218,19 @@ d3.json("../data/lastStrategy.json",
 	})	
 }
 
-async function sendData(name, value) {
-  const formData = new FormData();
-  formData.append(name, value);
-  try {
-    const response = await fetch("pages/index.html", {
-      method: "POST",
-      body: formData,
-    });
-    console.log(await response.json());
-  } catch (e) {
-    console.error(e);
-  }
-}
 
-displayMarketGraph(0);
+displayMarketGraph("NVDA");
 displayPortfolioGraph(0);
-currentStrategy = displayStrategyGraph(0);
-document.querySelector('#ticker').addEventListener("change", function() {
+displayStrategyGraph("MACDLongShort");
+document.querySelector('#tickerSelect').addEventListener("change", function() {
   graphNum=this.value;
   d3.selectAll('#tickerGraph').remove();
   d3.selectAll('#tickerOption').remove();
   displayMarketGraph(graphNum);
   });
 document.querySelector('#strategySelect').addEventListener("change", function() {
-    document.getElementById("strategyForm").submit()
+	strategyName = this.value;
+	d3.selectAll('#strategyGraph').remove();
+	d3.selectAll('#strategyOption').remove();
+    displayStrategyGraph(strategyName);
 });

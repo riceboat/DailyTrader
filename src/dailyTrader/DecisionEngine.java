@@ -17,7 +17,7 @@ public class DecisionEngine {
 	}
 
 	public void frame() {
-		Portfolio portfolio = apiManager.getPortfolio();
+		Portfolio portfolio = apiManager.getPortfolio(30);
 		System.out.println(portfolio);
 		LinkedHashMap<String, OptionChain> chains = new LinkedHashMap<String, OptionChain>();
 		String[] symbols = { "AAPL", // Apple Inc.

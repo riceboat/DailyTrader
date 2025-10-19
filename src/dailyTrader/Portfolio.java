@@ -2,7 +2,9 @@ package dailyTrader;
 
 import java.util.ArrayList;
 
-public class Portfolio {
+import org.json.JSONObject;
+
+public class Portfolio implements JSONConvertible {
 	public ArrayList<Position> positions;
 	public Bars portfolioHistoryBars;
 	public double cash;
@@ -57,5 +59,10 @@ public class Portfolio {
 			s += position.toString();
 		}
 		return s;
+	}
+
+	@Override
+	public JSONObject toJSON() {
+		return getHistory().toJSON();
 	}
 }

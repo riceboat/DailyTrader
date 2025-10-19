@@ -6,7 +6,7 @@ import java.util.Iterator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-public class Bars {
+public class Bars implements JSONConvertible {
 	ArrayList<Bar> bars;
 	public String symbol;
 
