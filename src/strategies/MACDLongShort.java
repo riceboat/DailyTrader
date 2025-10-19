@@ -8,12 +8,12 @@ import dailyTrader.Portfolio;
 import dailyTrader.Side;
 
 // this strategy shorts the lowest macd and longs the highest
-public class MACDBestSingleStock implements Strategy {
+public class MACDLongShort implements Strategy {
 	private int longMA;
 	private int shortMA;
 	private int signalMA;
 
-	public MACDBestSingleStock(int longMA, int shortMA, int signalMA) {
+	public MACDLongShort(int longMA, int shortMA, int signalMA) {
 		this.longMA = longMA;
 		this.shortMA = shortMA;
 		this.signalMA = signalMA;
@@ -61,5 +61,4 @@ public class MACDBestSingleStock implements Strategy {
 		}
 		return chosenActions;
 	}
-
 }

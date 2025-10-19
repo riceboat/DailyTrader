@@ -17,13 +17,14 @@ public class StrategySimulator {
 	Market market;
 	int day;
 	int maxDays;
-
-	public StrategySimulator(Strategy strategy, Market market, Portfolio portfolio) {
+	boolean debug;
+	public StrategySimulator(Strategy strategy, Market market, Portfolio portfolio, boolean debug) {
 		this.strategy = strategy;
 		this.portfolio = portfolio;
 		this.market = market;
 		this.maxDays = market.getDays();
 		this.day = maxDays / 2;
+		this.debug = debug;
 	}
 
 	public ArrayList<TradingAction> getPossibleActions() {
@@ -114,22 +115,27 @@ public class StrategySimulator {
 	public void step() {
 		ArrayList<TradingAction> possibleActions = getPossibleActions();
 		ArrayList<TradingAction> bestActions = strategy.decide(market.firstNDays(day), portfolio, possibleActions, day);
-		System.out.println("Start of day " + Integer.toString(day) + ":\n");
+		debugPrint("Start of day " + Integer.toString(day) + ":\n");
 		updatePortfolio();
-		System.out.println(portfolio);
-		System.out.println("POSSIBLE ACTIONS");
-		System.out.println(possibleActions);
-		System.out.println("SELECTED -> " + bestActions);
-		System.out.println(portfolio);
+		debugPrint(portfolio);
+		debugPrint("POSSIBLE ACTIONS");
+		debugPrint(possibleActions);
+		debugPrint("SELECTED -> " + bestActions);
+		debugPrint(portfolio);
 		performTradingActions(bestActions);
 		day++;
 	}
-
+	public void debugPrint(Object s) {
+		if (debug) {
+			System.out.println(s.toString());
+		}
+	}
 	public Bars run() {
 		Bars portfolioBars = new Bars();
+		String strategyName = strategy.getName();
 		while (day < maxDays - 2) {
 			Bar oldBar = market.getBars().get(0).get(day);
-			Bar newBar = new Bar("NVDA", portfolio.getValue(), oldBar.start, oldBar.end);
+			Bar newBar = new Bar(strategyName, portfolio.getValue(), oldBar.start, oldBar.end);
 			portfolioBars.add(newBar);
 			step();
 		}

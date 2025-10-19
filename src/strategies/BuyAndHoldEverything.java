@@ -28,6 +28,4 @@ public class BuyAndHoldEverything implements Strategy {
 		}
 		return chosenActions;
 	}
-
-
 }
