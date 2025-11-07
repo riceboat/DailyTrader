@@ -1,10 +1,17 @@
 package dailyTrader;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.net.http.HttpResponse;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -23,6 +30,7 @@ public class APIManager {
 	String public_key;
 	String private_key;
 	boolean paper;
+	private String cacheFilePath = "data_cache/api_request_cache.json";
 
 	public APIManager(String public_key, String private_key, boolean paper) {
 		this.public_key = public_key;
@@ -131,6 +139,7 @@ public class APIManager {
 		}
 		return orders;
 	}
+
 	public Bars getPortfolioHistory(int numDays) {
 		Bars portfolioHistoryBars = new Bars();
 		HashMap<String, String> args = new HashMap<String, String>();
@@ -141,22 +150,23 @@ public class APIManager {
 		JSONArray timestampArray = response.getJSONArray("timestamp");
 		for (int i = 0; i < equityArray.length(); i++) {
 			int unixEpoch = timestampArray.getInt(i);
-			Date startDate = new Date((long)unixEpoch * 1000);
-			Date endDate = new Date((long)unixEpoch * 1000);
-			endDate.setDate(endDate.getDate() + 1); //this is stupid
-			Bar bar = new Bar("history",equityArray.getDouble(i), startDate, endDate);
+			Date startDate = new Date((long) unixEpoch * 1000);
+			Date endDate = new Date((long) unixEpoch * 1000);
+			endDate.setDate(endDate.getDate() + 1); // this is stupid
+			Bar bar = new Bar("history", equityArray.getDouble(i), startDate, endDate);
 			portfolioHistoryBars.add(bar);
 		}
 		return portfolioHistoryBars;
 	}
+
 	public Portfolio getPortfolio(int numDays) {
 		HashMap<String, String> args = new HashMap<String, String>();
 		JSONArray positionsJsonArray = (JSONArray) APIRequest("v2/positions", args, "api", "GET");
 		Bars portfolioHistoryBars = getPortfolioHistory(numDays);
-		JSONObject portfolioJsonObject = new JSONObject(); 
+		JSONObject portfolioJsonObject = new JSONObject();
 		portfolioJsonObject.put("history", portfolioHistoryBars.toJSON());
 		portfolioJsonObject.put("positions", positionsJsonArray);
-		
+
 		Portfolio portfolio = new Portfolio(portfolioJsonObject, getAccount());
 		return portfolio;
 	}
@@ -425,6 +435,53 @@ public class APIManager {
 		return new Account(response);
 	}
 
+	void writeToAPICache(String apiRequestString, Object data) {
+		File f = new File(cacheFilePath);
+		if (f.exists() && !f.isDirectory()) {
+			JSONObject newCacheEntryJsonObject = new JSONObject();
+			byte[] encoded;
+			try {
+				encoded = Files.readAllBytes(Paths.get(cacheFilePath));
+				String fileContentString = new String(encoded, Charset.defaultCharset());
+				if (fileContentString.length() != 0) {
+					newCacheEntryJsonObject = new JSONObject(fileContentString);
+				}
+			} catch (IOException e) {
+				System.err.println(e);
+			}
+			newCacheEntryJsonObject.put(apiRequestString, data);
+			try (PrintWriter myFile = new PrintWriter(cacheFilePath, "UTF-8")) {
+				myFile.println(newCacheEntryJsonObject);
+				myFile.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				f.createNewFile();
+				writeToAPICache(apiRequestString, data);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public Object readFromAPICache(String apiRequestString) throws IOException{
+		byte[] encoded;
+		try {
+			encoded = Files.readAllBytes(Paths.get(cacheFilePath));
+			JSONObject responseJsonObject = new JSONObject(new String(encoded, Charset.defaultCharset()));
+			Object o = responseJsonObject.get(apiRequestString);
+			System.out.println("Read " + apiRequestString + " from cache");
+			return o;
+		} catch (IOException e) {
+			throw e;
+		}
+
+	}
+
 	public Object APIRequest(String path, Map<String, String> args, String api, String method) {
 		String prefix = "https://";
 		if (paper == true && api == "api") {
@@ -463,22 +520,31 @@ public class APIManager {
 				.header("APCA-API-SECRET-KEY", private_key).method(method, body).build();
 
 		HttpResponse<String> response;
-
 		try {
-			response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
-			if (response.statusCode() > 300) {
-				System.err.println("Response failed with error " + Integer.toString(response.statusCode()));
-				System.err.println(response.toString());
-				System.err.println(response.body());
-			}
+			return readFromAPICache(request.toString());
+		} catch (Exception e) {
+			System.err.println(e);
+			System.err.println("No cache for " + request.toString() + " found!");
+
 			try {
-				return new JSONObject(response.body());
-			} catch (org.json.JSONException e) {
-				return new JSONArray(response.body());
+				response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+				if (response.statusCode() > 300) {
+					System.err.println("Response failed with error " + Integer.toString(response.statusCode()));
+					System.err.println(response.toString());
+					System.err.println(response.body());
+				}
+				try {
+					JSONObject responseJsonObject = new JSONObject(response.body());
+					writeToAPICache(request.toString(), responseJsonObject);
+					System.out.println("writing " + request.toString() + " to cache");
+					return responseJsonObject;
+				} catch (org.json.JSONException e1) {
+					return new JSONArray(response.body());
+				}
+			} catch (IOException | InterruptedException e2) {
+				e.printStackTrace();
+				return null;
 			}
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-			return null;
 		}
 	}
 }
