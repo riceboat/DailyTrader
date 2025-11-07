@@ -53,4 +53,14 @@ public class Position {
 		s += "Entry Price: " + Double.toString(entryPrice) + "\n\n";
 		return s;
 	}
+
+	public JSONObject toJSON() {
+		JSONObject positionJsonObject = new JSONObject();
+		positionJsonObject.put("symbol", symbol);
+		positionJsonObject.put("pnl", pnl);
+		positionJsonObject.put("pnlpc", pnlpc);
+		positionJsonObject.put("side", side);
+		positionJsonObject.put("entry_price", entryPrice);
+		return positionJsonObject;
+	}
 }

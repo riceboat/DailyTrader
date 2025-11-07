@@ -2,24 +2,35 @@ package dailyTrader;
 
 import java.util.ArrayList;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class Portfolio implements JSONConvertible {
 	public ArrayList<Position> positions;
 	public Bars portfolioHistoryBars;
-	public double cash;
-	public Portfolio(Bars portfolioHistoryBars) {
+	private Account linkedAccount;
+	private double simCash;
+
+	public Portfolio(JSONObject portfolioJSON, Account account) {
 		positions = new ArrayList<Position>();
-		this.portfolioHistoryBars = portfolioHistoryBars;
-		this.cash = portfolioHistoryBars.get(portfolioHistoryBars.size()-1).c;
+		this.linkedAccount = account;
+		simCash = 0;
+		JSONArray positionsJsonArray = portfolioJSON.getJSONArray("positions");
+		for (int i = 0; i < positionsJsonArray.length(); i++) {
+			Position position = new Position(positionsJsonArray.getJSONObject(i));
+			addPosition(position);
+		}
+		this.portfolioHistoryBars = new Bars(portfolioJSON.getJSONObject("history"));
 	}
 
 	public void addPosition(Position position) {
 		positions.add(position);
 	}
+
 	public Bars getHistory() {
 		return portfolioHistoryBars;
 	}
+
 	public void removePosition(Position position) {
 		Position posToRemove = null;
 		for (Position pos : positions) {
@@ -38,16 +49,18 @@ public class Portfolio implements JSONConvertible {
 		}
 		return null;
 	}
+
 	public double getValue() {
-		double value = cash;
+		double value = getCash();
 		for (Position position : positions) {
 			value += position.qty * position.entryPrice + position.pnl;
 		}
 		return value;
 	}
+
 	public String toString() {
 		String s = "";
-		s += "Portfolio cash: " + Double.toString(cash) + "\n";
+		s += "Portfolio cash: " + Double.toString(getCash()) + "\n";
 		double value = getValue();
 		double pnl = 0;
 		for (Position position : positions) {
@@ -63,6 +76,26 @@ public class Portfolio implements JSONConvertible {
 
 	@Override
 	public JSONObject toJSON() {
-		return getHistory().toJSON();
+		JSONObject portfolioJsonObject = getHistory().toJSON();
+		JSONArray positionJsonArray = new JSONArray();
+		for (Position position : positions) {
+			positionJsonArray.put(position.toJSON());
+		}
+		portfolioJsonObject.put("positions", positionJsonArray);
+		portfolioJsonObject.put("account", linkedAccount.toJSON());
+		return portfolioJsonObject;
+	}
+
+	public double getCash() {
+		if (simCash == 0) {
+			return linkedAccount.getCash();
+		}
+		else {
+			return simCash;
+		}
+	}
+
+	public void setCash(double cash) {
+		this.simCash = cash;
 	}
 }

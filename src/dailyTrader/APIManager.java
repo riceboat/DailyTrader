@@ -143,7 +143,7 @@ public class APIManager {
 			int unixEpoch = timestampArray.getInt(i);
 			Date startDate = new Date((long)unixEpoch * 1000);
 			Date endDate = new Date((long)unixEpoch * 1000);
-			endDate.setDate(endDate.getDate() + 1);
+			endDate.setDate(endDate.getDate() + 1); //this is stupid
 			Bar bar = new Bar("history",equityArray.getDouble(i), startDate, endDate);
 			portfolioHistoryBars.add(bar);
 		}
@@ -151,13 +151,13 @@ public class APIManager {
 	}
 	public Portfolio getPortfolio(int numDays) {
 		HashMap<String, String> args = new HashMap<String, String>();
-		JSONArray response = (JSONArray) APIRequest("v2/positions", args, "api", "GET");
-		
+		JSONArray positionsJsonArray = (JSONArray) APIRequest("v2/positions", args, "api", "GET");
 		Bars portfolioHistoryBars = getPortfolioHistory(numDays);
-		Portfolio portfolio = new Portfolio(portfolioHistoryBars);
-		for (int i = 0; i < response.length(); i++) {
-			portfolio.addPosition(new Position(response.getJSONObject(i)));
-		}
+		JSONObject portfolioJsonObject = new JSONObject(); 
+		portfolioJsonObject.put("history", portfolioHistoryBars.toJSON());
+		portfolioJsonObject.put("positions", positionsJsonArray);
+		
+		Portfolio portfolio = new Portfolio(portfolioJsonObject, getAccount());
 		return portfolio;
 	}
 

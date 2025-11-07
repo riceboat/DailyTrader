@@ -31,9 +31,9 @@ public class StrategySimulator {
 		ArrayList<TradingAction> possibleActions = new ArrayList<TradingAction>();
 		for (Bars bars : market.getBars()) {
 			Bar barToday = bars.get(bars.size() - 1);
-			if (barToday.c < portfolio.cash) {
+			if (barToday.c < portfolio.getCash()) {
 				possibleActions.add(new TradingAction(Type.STOCK, Side.LONG, 1, barToday.symbol));
-				if (portfolio.cash > 2000) {
+				if (portfolio.getCash() > 2000) {
 					possibleActions.add(new TradingAction(Type.STOCK, Side.SHORT, 1, barToday.symbol));
 				}
 			}
@@ -63,20 +63,20 @@ public class StrategySimulator {
 			double currentPrice = getAssetValue(symbol);
 			switch (tradingAction.side) {
 			case LONG: {
-				double cashCommitment = ((percent / totPercent) * portfolio.cash);
+				double cashCommitment = ((percent / totPercent) * portfolio.getCash());
 				totPercent -= percent;
 				double qty = cashCommitment / currentPrice;
 				Position newPosition = new Position(symbol, side, qty, currentPrice);
-				portfolio.cash -= cashCommitment;
+				portfolio.setCash(portfolio.getCash() - cashCommitment);
 				portfolio.addPosition(newPosition);
 			}
 				break;
 			case SHORT: {
-				double cashCommitment = ((percent / totPercent) * portfolio.cash);
+				double cashCommitment = ((percent / totPercent) * portfolio.getCash());
 				totPercent -= percent;
 				double qty = cashCommitment / currentPrice;
 				Position newPosition = new Position(symbol, side, qty, currentPrice);
-				portfolio.cash -= cashCommitment;
+				portfolio.setCash(portfolio.getCash() - cashCommitment);
 				portfolio.addPosition(newPosition);
 			}
 				break;
@@ -87,7 +87,7 @@ public class StrategySimulator {
 			case SELL: {
 				Position position = portfolio.getPositionByCode(symbol);
 				double cost = percent * getAssetValue(symbol) * position.qty;
-				portfolio.cash += cost;
+				portfolio.setCash(portfolio.getCash() + cost);
 				portfolio.removePosition(position);
 			}
 				break;

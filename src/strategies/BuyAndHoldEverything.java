@@ -13,7 +13,7 @@ public class BuyAndHoldEverything implements Strategy {
 	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio,
 			ArrayList<TradingAction> possibleActions, int day) {
 		ArrayList<TradingAction> chosenActions = new ArrayList<TradingAction>();
-		if (portfolio.cash > 0) {
+		if (portfolio.getCash() > 0) {
 			for (TradingAction action : possibleActions) {
 				if (action.getSide() == Side.LONG) {
 					chosenActions.add(action);

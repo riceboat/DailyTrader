@@ -14,15 +14,14 @@ public class Bars implements JSONConvertible {
 		bars = new ArrayList<Bar>();
 	}
 
-	public Bars(JSONObject barsObject) {
-		Iterator<String> keyIterator = barsObject.keys(); //hacky solution to get key
-		this.symbol = keyIterator.next();
+	public Bars(JSONObject barsJsonObject) {
+		Iterator<String> iter = barsJsonObject.keys();
+		symbol = iter.next();
+		JSONArray barsArray = barsJsonObject.getJSONArray(symbol.toString());
 		bars = new ArrayList<Bar>();
-		JSONArray barsArray = barsObject.getJSONArray(symbol);
 		for (int i = 0; i < barsArray.length(); i++) {
 			Bar bar = new Bar(barsArray.getJSONObject(i), 0, 24, symbol);
 			this.add(bar);
-			
 		}
 	}
 	

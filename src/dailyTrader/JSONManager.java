@@ -15,19 +15,18 @@ public class JSONManager {
 
 	}
 
-	String readJSONFile(String filePath) {
+	JSONObject readJSONFile(String filePath) throws FileNotFoundException {
 		byte[] encoded;
 		try {
 			encoded = Files.readAllBytes(Paths.get(filePath));
-			return new String(encoded, Charset.defaultCharset());
+			return new JSONObject(new String(encoded, Charset.defaultCharset()));
 		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
+			throw new FileNotFoundException("JSON File not Found at: " + filePath);
 		}
 
 	}
 
-	public Market readMarketFromFile(String filePath) {
+	public Market readMarketFromFile(String filePath) throws FileNotFoundException {
 		JSONObject marketJSON = new JSONObject(readJSONFile(filePath));
 		return new Market(marketJSON);
 	}
@@ -37,7 +36,7 @@ public class JSONManager {
 	}
 
 	public void toJSONFile(JSONConvertible object, String filePath) {
-		try (PrintWriter myFile = new PrintWriter(filePath + ".json", "UTF-8")) {
+		try (PrintWriter myFile = new PrintWriter(filePath, "UTF-8")) {
 			myFile.println(object.toJSON());
 			myFile.close();
 		} catch (FileNotFoundException e) {
@@ -45,5 +44,10 @@ public class JSONManager {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public Portfolio readPortfolioFromFile(String filePath) throws FileNotFoundException {
+		JSONObject portfolioJSON = new JSONObject(readJSONFile(filePath));
+		return new Portfolio(portfolioJSON, new Account(portfolioJSON.getJSONObject("account")));
 	}
 }

@@ -20,7 +20,8 @@ public class RandomActions implements Strategy {
 		ArrayList<TradingAction> chosenActions = new ArrayList<TradingAction>();
 		Random random = new Random();
 		if (random.nextDouble() < actionProbability) {
-			chosenActions.add(possibleActions.get(random.nextInt(possibleActions.size() - 1)));
+			int ranInt = random.nextInt(possibleActions.size());
+			chosenActions.add(possibleActions.get(ranInt));
 		}
 		return chosenActions;
 	}

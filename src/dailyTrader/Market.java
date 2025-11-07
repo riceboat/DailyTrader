@@ -13,11 +13,15 @@ public class Market implements JSONConvertible {
 	private HashMap<String, Bars> symbolBars;
 	private int days;
 
-	public Market(ArrayList<Bars> data){
+	public Market(ArrayList<Bars> data) {
 		symbolBars = new HashMap<String, Bars>();
 		days = data.get(0).size();
 		for (Bars bars : data) {
-			symbolBars.put(bars.symbol, bars);
+			if (days > bars.size()) {
+				System.out.println(bars.symbol + " has only " + bars.size() + " data points!, removing");
+			} else {
+				symbolBars.put(bars.symbol, bars);
+			}
 		}
 	}
 

@@ -58,7 +58,6 @@ d3.request("api").post("bars="+symbolString,
 	  			function readData(data){
 					
 	  				data = JSON.parse(data.response);
-					console.log(data);
 	  				var names = data.topStocks;
 	  				var tickerSelect = document.getElementById("tickerSelect");
 	  				names.forEach(function readName(name, i, a){
@@ -221,7 +220,7 @@ d3.request("api").post("strategy="+strategyName,
 
 displayMarketGraph("NVDA");
 displayPortfolioGraph(0);
-displayStrategyGraph("MACDLongShort");
+displayStrategyGraph("RandomActions");
 document.querySelector('#tickerSelect').addEventListener("change", function() {
   graphNum=this.value;
   d3.selectAll('#tickerGraph').remove();
