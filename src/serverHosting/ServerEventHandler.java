@@ -60,16 +60,21 @@ public class ServerEventHandler implements Runnable {
 				JSONObject resultObject = new JSONObject();
 				resultObject.put("topStocks", tickerStringArray);
 				result = resultObject.toString();
+			} else if (keyString.equals("savedTickers")) {
+				JSONArray tickerStringArray = new JSONArray(apiManager.getSavedTickers());
+				JSONObject resultObject = new JSONObject();
+				resultObject.put("tickers", tickerStringArray);
+				result = resultObject.toString();
 			} else if (keyString.equals("bars")) {
 				result = apiManager.getHistoricalBars(valueString, 365, ChronoUnit.DAYS).toJSON().toString();
 			} else if (keyString.equals("market")) {
-				result = apiManager.getHistoricalBars(valueString, 365, ChronoUnit.DAYS).toJSON().toString();
+				result = apiManager.createMarketFromTickers(apiManager.getSavedTickers(), 365).toJSON().toString();
 			} else if (keyString.equals("strategyNames")) {
-				
+
 				JSONObject strategyNames = new JSONObject();
 				JSONArray nameArray = new JSONArray();
 				nameArray.put("MACDLongShort");
-				nameArray.put("RandomActions");		
+				nameArray.put("RandomActions");
 				nameArray.put("BuyAndHoldEverything");
 				strategyNames.put("strategyNames", nameArray);
 				result = strategyNames.toString();
@@ -126,7 +131,7 @@ public class ServerEventHandler implements Runnable {
 		Portfolio portfolio = apiManager.getPortfolio(numDays);
 		JSONManager jsonManager = new JSONManager();
 
-		Market market = apiManager.createMarketFromTickers(apiManager.getMostActiveSymbols(6), numDays);
+		Market market = apiManager.createMarketFromTickers(apiManager.getSavedTickers(), numDays);
 		StrategySimulator simulator = new StrategySimulator(strategy, market, portfolio, false);
 		Bars strategyRunBars = simulator.run();
 		return jsonManager.toJSONString(strategyRunBars);

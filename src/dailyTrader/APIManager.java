@@ -31,11 +31,38 @@ public class APIManager {
 	String private_key;
 	boolean paper;
 	private String cacheFilePath = "data_cache/api_request_cache.json";
+	private String savedTickersFilePath = "data_cache/saved_tickers.json";
+	private JSONObject dataCacheJsonObject;
 
 	public APIManager(String public_key, String private_key, boolean paper) {
 		this.public_key = public_key;
 		this.private_key = private_key;
 		this.paper = paper;
+		updateCacheFromFile();
+	}
+
+	private void updateCacheFromFile() {
+		byte[] encoded;
+		File f = new File(cacheFilePath);
+		if (f.exists() && !f.isDirectory()) {
+			try {
+				encoded = Files.readAllBytes(Paths.get(cacheFilePath));
+				if (encoded.length > 0) {
+					dataCacheJsonObject = new JSONObject(new String(encoded, Charset.defaultCharset()));
+				} else {
+					dataCacheJsonObject = new JSONObject();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		} else {
+			try {
+				f.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			updateCacheFromFile();
+		}
 	}
 
 	public float getAskPrice(String symbol) {
@@ -175,6 +202,77 @@ public class APIManager {
 		HashMap<String, String> args = new HashMap<String, String>();
 		args.put("cancel_orders", "true");
 		APIRequest("v2/positions", args, "api", "DELETE");
+	}
+
+	public ArrayList<String> getSavedTickers(){
+		ArrayList<String> tickerStrings = new ArrayList<String>();
+		byte[] encoded;
+		JSONObject updatedJsonObject = new JSONObject();
+		try {
+			encoded = Files.readAllBytes(Paths.get(savedTickersFilePath));
+			String fileContentString = new String(encoded, Charset.defaultCharset());
+			if (fileContentString.length() != 0) {
+				updatedJsonObject = new JSONObject(fileContentString);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		JSONArray updatedTickerArray = updatedJsonObject.getJSONArray("tickers");
+		for (Object currentTickerJsonObject : updatedTickerArray.toList()) {
+			tickerStrings.add(currentTickerJsonObject.toString());
+		}
+		return tickerStrings;
+	}
+	public void saveTicker(String ticker) {
+		File file = new File(savedTickersFilePath);
+		if (!file.exists()) {
+			try {
+				file.createNewFile();
+				try (PrintWriter myFile = new PrintWriter(savedTickersFilePath, "UTF-8")) {
+					JSONObject blankJsonObject = new JSONObject();
+					blankJsonObject.put("tickers", new JSONArray());
+					myFile.println(blankJsonObject);
+					myFile.close();
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		byte[] encoded;
+		JSONObject updatedJsonObject = new JSONObject();
+		try {
+			encoded = Files.readAllBytes(Paths.get(savedTickersFilePath));
+			String fileContentString = new String(encoded, Charset.defaultCharset());
+			if (fileContentString.length() != 0) {
+				updatedJsonObject = new JSONObject(fileContentString);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		JSONArray updatedTickerArray = updatedJsonObject.getJSONArray("tickers");
+		boolean containedAlready = false;
+		for (Object currentTickerJsonObject : updatedTickerArray.toList()) {
+			if (ticker.equals(currentTickerJsonObject.toString())) {
+				containedAlready = true;
+			}
+		}
+		if (!containedAlready) {
+			updatedTickerArray.put(ticker);
+		}
+		try (PrintWriter myFile = new PrintWriter(savedTickersFilePath, "UTF-8")) {
+			myFile.println(updatedJsonObject);
+			myFile.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public JSONObject createOrder(String symbol, double d, String side) {
@@ -436,50 +534,35 @@ public class APIManager {
 	}
 
 	void writeToAPICache(String apiRequestString, Object data) {
-		File f = new File(cacheFilePath);
-		if (f.exists() && !f.isDirectory()) {
-			JSONObject newCacheEntryJsonObject = new JSONObject();
-			byte[] encoded;
-			try {
-				encoded = Files.readAllBytes(Paths.get(cacheFilePath));
-				String fileContentString = new String(encoded, Charset.defaultCharset());
-				if (fileContentString.length() != 0) {
-					newCacheEntryJsonObject = new JSONObject(fileContentString);
-				}
-			} catch (IOException e) {
-				System.err.println(e);
-			}
-			newCacheEntryJsonObject.put(apiRequestString, data);
-			try (PrintWriter myFile = new PrintWriter(cacheFilePath, "UTF-8")) {
-				myFile.println(newCacheEntryJsonObject);
-				myFile.close();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-		} else {
-			try {
-				f.createNewFile();
-				writeToAPICache(apiRequestString, data);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	public Object readFromAPICache(String apiRequestString) throws IOException{
+		JSONObject newCacheEntryJsonObject = new JSONObject();
 		byte[] encoded;
 		try {
 			encoded = Files.readAllBytes(Paths.get(cacheFilePath));
-			JSONObject responseJsonObject = new JSONObject(new String(encoded, Charset.defaultCharset()));
-			Object o = responseJsonObject.get(apiRequestString);
-			System.out.println("Read " + apiRequestString + " from cache");
-			return o;
+			String fileContentString = new String(encoded, Charset.defaultCharset());
+			if (fileContentString.length() != 0) {
+				newCacheEntryJsonObject = new JSONObject(fileContentString);
+			}
 		} catch (IOException e) {
-			throw e;
+			System.err.println(e);
 		}
+		String hashString = Integer.toString(apiRequestString.hashCode());
+		newCacheEntryJsonObject.put(hashString, data);
+		try (PrintWriter myFile = new PrintWriter(cacheFilePath, "UTF-8")) {
+			myFile.println(newCacheEntryJsonObject);
+			myFile.close();
+			updateCacheFromFile();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+	}
 
+	public Object readFromAPICache(String apiRequestString) throws IOException {
+		String hashString = Integer.toString(apiRequestString.hashCode());
+		Object o = dataCacheJsonObject.get(hashString);
+		System.out.println("Read " + apiRequestString + " from cache");
+		return o;
 	}
 
 	public Object APIRequest(String path, Map<String, String> args, String api, String method) {
@@ -523,7 +606,6 @@ public class APIManager {
 		try {
 			return readFromAPICache(request.toString());
 		} catch (Exception e) {
-			System.err.println(e);
 			System.err.println("No cache for " + request.toString() + " found!");
 
 			try {

@@ -76,12 +76,10 @@ public class Market implements JSONConvertible {
 
 	public JSONObject toJSON() {
 		JSONObject jsonMarket = new JSONObject();
-		JSONArray jsonBarsArray = new JSONArray();
 		for (Entry<String, Bars> entry : symbolBars.entrySet()) {
 			Bars bars = entry.getValue();
-			jsonBarsArray.put(bars.toJSON());
+			jsonMarket.put(bars.symbol, bars.toJSON());
 		}
-		jsonMarket.put("market", jsonBarsArray);
 		return jsonMarket;
 	}
 }

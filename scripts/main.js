@@ -54,11 +54,11 @@ d3.request("api").post("bars="+symbolString,
 	  	        .y(function(d) { return y(d.c) })
 	  	        )
 	
-	  d3.request("api").post("topStocks=30",
+	  d3.request("api").post("savedTickers=30",
 	  			function readData(data){
 					
 	  				data = JSON.parse(data.response);
-	  				var names = data.topStocks;
+	  				var names = data.tickers;
 	  				var tickerSelect = document.getElementById("tickerSelect");
 	  				names.forEach(function readName(name, i, a){
 	  					var option = document.createElement("option");
@@ -218,7 +218,7 @@ d3.request("api").post("strategy="+strategyName,
 }
 
 
-displayMarketGraph("NVDA");
+displayMarketGraph("SQQQ");
 displayPortfolioGraph(0);
 displayStrategyGraph("RandomActions");
 document.querySelector('#tickerSelect').addEventListener("change", function() {
