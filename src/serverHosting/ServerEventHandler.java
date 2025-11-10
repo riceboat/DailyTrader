@@ -54,6 +54,12 @@ public class ServerEventHandler implements Runnable {
 				result = runStrategy(valueString, 365);
 			} else if (keyString.equals("portfolio")) {
 				result = apiManager.getPortfolio(Integer.parseInt(valueString)).toJSON().toString();
+			} else if (keyString.equals("addTicker")) {
+				apiManager.saveTicker(valueString);
+				result = "";
+			} else if (keyString.equals("removeTicker")) {
+				apiManager.deleteTicker(valueString);
+				result = "";
 			} else if (keyString.equals("topStocks")) {
 				JSONArray tickerStringArray = new JSONArray(
 						apiManager.getMostActiveSymbols(Integer.parseInt(valueString)));
@@ -82,6 +88,7 @@ public class ServerEventHandler implements Runnable {
 			double timeTaken = (System.nanoTime() - startTime) / 1000000;
 			System.out.println(requestString + " took " + timeTaken + "ms");
 			return result;
+
 		} else {
 			return readFile(uriString);
 		}

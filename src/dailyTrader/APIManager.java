@@ -204,7 +204,7 @@ public class APIManager {
 		APIRequest("v2/positions", args, "api", "DELETE");
 	}
 
-	public ArrayList<String> getSavedTickers(){
+	public ArrayList<String> getSavedTickers() {
 		ArrayList<String> tickerStrings = new ArrayList<String>();
 		byte[] encoded;
 		JSONObject updatedJsonObject = new JSONObject();
@@ -224,7 +224,61 @@ public class APIManager {
 		}
 		return tickerStrings;
 	}
+
 	public void saveTicker(String ticker) {
+		if (checkValidSymbol(ticker)) {
+			File file = new File(savedTickersFilePath);
+			if (!file.exists()) {
+				try {
+					file.createNewFile();
+					try (PrintWriter myFile = new PrintWriter(savedTickersFilePath, "UTF-8")) {
+						JSONObject blankJsonObject = new JSONObject();
+						blankJsonObject.put("tickers", new JSONArray());
+						myFile.println(blankJsonObject);
+						myFile.close();
+					} catch (FileNotFoundException e) {
+						e.printStackTrace();
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			byte[] encoded;
+			JSONObject updatedJsonObject = new JSONObject();
+			try {
+				encoded = Files.readAllBytes(Paths.get(savedTickersFilePath));
+				String fileContentString = new String(encoded, Charset.defaultCharset());
+				if (fileContentString.length() != 0) {
+					updatedJsonObject = new JSONObject(fileContentString);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			JSONArray updatedTickerArray = updatedJsonObject.getJSONArray("tickers");
+			boolean containedAlready = false;
+			for (Object currentTickerJsonObject : updatedTickerArray.toList()) {
+				if (ticker.equals(currentTickerJsonObject.toString())) {
+					containedAlready = true;
+				}
+			}
+			if (!containedAlready) {
+				updatedTickerArray.put(ticker);
+			}
+			try (PrintWriter myFile = new PrintWriter(savedTickersFilePath, "UTF-8")) {
+				myFile.println(updatedJsonObject);
+				myFile.close();
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	public void deleteTicker(String ticker) {
 		File file = new File(savedTickersFilePath);
 		if (!file.exists()) {
 			try {
@@ -262,8 +316,14 @@ public class APIManager {
 				containedAlready = true;
 			}
 		}
-		if (!containedAlready) {
-			updatedTickerArray.put(ticker);
+		if (containedAlready) {
+			int indexToRemove = -1;
+			for (int i = 0; i < updatedTickerArray.length(); i++) {
+				if (updatedTickerArray.get(i).toString().equals(ticker)) {
+					indexToRemove = i;
+				}
+			}
+			updatedTickerArray.remove(indexToRemove);
 		}
 		try (PrintWriter myFile = new PrintWriter(savedTickersFilePath, "UTF-8")) {
 			myFile.println(updatedJsonObject);
@@ -273,6 +333,12 @@ public class APIManager {
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public boolean checkValidSymbol(String symbol) {
+		HashMap<String, String> args = new HashMap<String, String>();
+		JSONObject response = (JSONObject) APIRequest("v2/assets/" + symbol, args, "api", "GET");
+		return response.getBoolean("tradable");
 	}
 
 	public JSONObject createOrder(String symbol, double d, String side) {
@@ -629,4 +695,5 @@ public class APIManager {
 			}
 		}
 	}
+
 }

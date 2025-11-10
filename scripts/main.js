@@ -17,7 +17,6 @@ var svg = d3.select("#marketGraphContainer")
     .attr("transform",
           "translate(" + margin.left + "," + margin.top + ")");
 d3.request("api").post("bars="+symbolString,
- 
   function readData(data){
 	data = JSON.parse(data.response);
 	const parsed = data[symbolString].map(d => ({
@@ -54,24 +53,7 @@ d3.request("api").post("bars="+symbolString,
 	  	        .y(function(d) { return y(d.c) })
 	  	        )
 	
-	  d3.request("api").post("savedTickers=30",
-	  			function readData(data){
-					
-	  				data = JSON.parse(data.response);
-	  				var names = data.tickers;
-	  				var tickerSelect = document.getElementById("tickerSelect");
-	  				names.forEach(function readName(name, i, a){
-	  					var option = document.createElement("option");
-	  						  		    	option.value = name;
-	  						  		    	option.text = name;
-	  										option.setAttribute("id", "tickerOption");
-	  						  		    	tickerSelect.appendChild(option);
-	  										if (name == symbolString){
-	  											option.setAttribute("selected", "");
-	  										}
-	  				});
-	  			}
-	  		);
+	  updateTickerOptions(symbolString);
 })
 }
 function displayPortfolioGraph(graphNum){
@@ -217,19 +199,74 @@ d3.request("api").post("strategy="+strategyName,
 	})	
 }
 
-
-displayMarketGraph("SQQQ");
+function updateTickerOptions(ticker){
+	d3.request("api").post("savedTickers=30",
+					function readData(data){
+					data = JSON.parse(data.response);
+					var names = data.tickers;
+					var tickerSelect = document.getElementById("tickerSelect");
+					tickerSelect.innerHTML = "";
+					names.forEach(function readName(name, i, a){
+						var option = document.createElement("option");
+						option.value = name;
+						option.text = name;
+						option.setAttribute("id", "tickerOption");
+						if (name == ticker){
+							option.setAttribute("selected", "");
+						}
+						tickerSelect.appendChild(option);
+					});
+				});	
+	
+}
+function addTicker(ticker){
+	d3.request("api").post("addTicker="+ticker, function add(){
+		updateTickerOptions(ticker);
+		d3.selectAll('#tickerGraph').remove();
+		d3.selectAll('#tickerOption').remove();
+		displayMarketGraph(ticker);
+		});
+	
+}
+function removeTicker(ticker){
+	d3.request("api").post("removeTicker="+ticker, function add(){
+		var newTicker = "";
+		var currentOptions = document.querySelectorAll('[id=tickerOption]');
+		currentOptions.forEach(function getOption(option, i, a){
+			if (option.value != ticker){
+				newTicker = option.value;
+			}
+		});
+		d3.selectAll('#tickerGraph').remove();
+		d3.selectAll('#tickerOption').remove();
+		updateTickerOptions(ticker);
+		console.log(newTicker);
+		displayMarketGraph(newTicker);
+		});
+}
+addTicker("SPY");
+addTicker("NVDA");
+addTicker("AAPL");
 displayPortfolioGraph(0);
 displayStrategyGraph("RandomActions");
 document.querySelector('#tickerSelect').addEventListener("change", function() {
-  graphNum=this.value;
+  ticker=this.value;
   d3.selectAll('#tickerGraph').remove();
   d3.selectAll('#tickerOption').remove();
-  displayMarketGraph(graphNum);
+  updateTickerOptions(ticker);
+  displayMarketGraph(ticker);
   });
 document.querySelector('#strategySelect').addEventListener("change", function() {
 	strategyName = this.value;
 	d3.selectAll('#strategyGraph').remove();
 	d3.selectAll('#strategyOption').remove();
     displayStrategyGraph(strategyName);
+});
+document.querySelector('#tickerAddButton').addEventListener("click", function() {
+	var ticker = document.querySelector("#tickerInput").value;
+	addTicker(ticker);
+});
+document.querySelector('#tickerRemoveButton').addEventListener("click", function() {
+	var ticker = document.querySelector("#tickerInput").value;
+	removeTicker(ticker);
 });
