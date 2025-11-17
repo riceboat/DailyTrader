@@ -57,16 +57,25 @@ public class Portfolio implements JSONConvertible {
 		}
 		return value;
 	}
+	public double getSimValue() {
+		double value = getSimCash();
+		for (Position position : positions) {
+			value += position.qty * position.entryPrice + position.pnl;
+		}
+		return value;
+	}
 
 	public String toString() {
 		String s = "";
 		s += "Portfolio cash: " + Double.toString(getCash()) + "\n";
+		s += "Portfolio sim cash: " + Double.toString(getSimCash()) + "\n";
 		double value = getValue();
 		double pnl = 0;
 		for (Position position : positions) {
 			pnl += position.pnl;
 		}
 		s += "Portfolio value: " + Double.toString(value) + "\n";
+		s += "Portfolio sim value: " + Double.toString(getSimValue()) + "\n";
 		s += "Portfolio PNL: " + Double.toString(pnl) + "\n\n";
 		for (Position position : positions) {
 			s += position.toString();
@@ -85,17 +94,14 @@ public class Portfolio implements JSONConvertible {
 		portfolioJsonObject.put("account", linkedAccount.toJSON());
 		return portfolioJsonObject;
 	}
-
+	public double getSimCash() {
+		return simCash;
+	}
 	public double getCash() {
-		if (simCash == 0) {
-			return linkedAccount.getCash();
-		}
-		else {
-			return simCash;
-		}
+		return linkedAccount.getCash();
 	}
 
-	public void setCash(double cash) {
+	public void setSimCash(double cash) {
 		this.simCash = cash;
 	}
 }

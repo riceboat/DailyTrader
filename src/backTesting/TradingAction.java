@@ -20,32 +20,41 @@ public class TradingAction {
 		String s = "";
 		if (side == Side.LONG) {
 			s += "LONG ";
-		}
-		else if (side == Side.SHORT) {
+		} else if (side == Side.SHORT) {
 			s += "SHORT ";
-		}
-		else if (side == Side.SELL) {
+		} else if (side == Side.SELL) {
 			s += "SELL ";
-		}
-		else if (side == Side.HOLD) {
+		} else if (side == Side.HOLD) {
 			s += "HOLD ";
 		}
 		s += codeString + " ";
 		if (type == Type.OPTION) {
 			s += "OPTION ";
-		}
-		else if (type == Type.STOCK) {
+		} else if (type == Type.STOCK) {
 			s += "STOCK ";
 		}
-		s+="\n";
+		s += " " + Double.toString(percent) + "% ";
+		s += "\n";
 		return s;
 	}
 
 	public Side getSide() {
 		return side;
 	}
-	
+
 	public String getSymbol() {
 		return codeString;
+	}
+
+	public double getPercentage() {
+		return percent;
+	}
+
+	public Type getType() {
+		return type;
+	}
+
+	public void setPercentage(double percent) {
+		this.percent = percent;
 	}
 }

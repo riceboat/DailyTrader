@@ -8,7 +8,6 @@ public class Account {
 	double cash;
 	double buying_power;
 	public Account (JSONObject obj){
-		System.out.println(obj.toString());
 		this.id = obj.getString("id");
 		this.cash = Double.parseDouble(obj.getString("cash"));
 		this.buying_power = Double.parseDouble(obj.getString("buying_power"));

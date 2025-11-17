@@ -13,9 +13,9 @@ import org.json.JSONObject;
 
 import com.sun.net.httpserver.HttpExchange;
 
+import backTesting.SimulationResults;
 import backTesting.StrategySimulator;
 import dailyTrader.APIManager;
-import dailyTrader.Bars;
 import dailyTrader.JSONManager;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
@@ -44,8 +44,8 @@ public class ServerEventHandler implements Runnable {
 		if (uriString.equals("")) {
 			return readFile("pages/index.html");
 		} else if (uriString.equals("api")) {
-			System.out.println("API CALL -> " + requestString);
-			double startTime = System.nanoTime();
+			//System.out.println("API CALL -> " + requestString);
+			//double startTime = System.nanoTime();
 			String[] splitString = requestString.split("="); // seperate via equals
 			String keyString = splitString[0];
 			String valueString = splitString[1];
@@ -85,8 +85,8 @@ public class ServerEventHandler implements Runnable {
 				strategyNames.put("strategyNames", nameArray);
 				result = strategyNames.toString();
 			}
-			double timeTaken = (System.nanoTime() - startTime) / 1000000;
-			System.out.println(requestString + " took " + timeTaken + "ms");
+			//double timeTaken = (System.nanoTime() - startTime) / 1000000;
+			//System.out.println(requestString + " took " + timeTaken + "ms");
 			return result;
 
 		} else {
@@ -133,15 +133,15 @@ public class ServerEventHandler implements Runnable {
 		} else if (strategyString.equals("BuyAndHoldEverything")) {
 			strategy = new BuyAndHoldEverything();
 		} else if (strategyString.equals("RandomActions")) {
-			strategy = new RandomActions(0.25);
+			strategy = new RandomActions(0.05);
 		}
 		Portfolio portfolio = apiManager.getPortfolio(numDays);
 		JSONManager jsonManager = new JSONManager();
 
 		Market market = apiManager.createMarketFromTickers(apiManager.getSavedTickers(), numDays);
 		StrategySimulator simulator = new StrategySimulator(strategy, market, portfolio, false);
-		Bars strategyRunBars = simulator.run();
-		return jsonManager.toJSONString(strategyRunBars);
+		SimulationResults simulationResults = simulator.run();
+		return jsonManager.toJSONString(simulationResults);
 	}
 
 	public String getJSONResponse() {

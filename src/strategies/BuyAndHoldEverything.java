@@ -12,10 +12,12 @@ public class BuyAndHoldEverything implements Strategy {
 	@Override
 	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio,
 			ArrayList<TradingAction> possibleActions, int day) {
+		System.out.println(day);
 		ArrayList<TradingAction> chosenActions = new ArrayList<TradingAction>();
-		if (portfolio.getCash() > 0) {
+		if (portfolio.getCash() > 0 && day == 0) {
 			for (TradingAction action : possibleActions) {
 				if (action.getSide() == Side.LONG) {
+					action.setPercentage(1.0);
 					chosenActions.add(action);
 				}
 			}
