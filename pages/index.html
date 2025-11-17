@@ -1,24 +1,29 @@
 <!DOCTYPE html>
 <h1 id = "graphtitle"></h1>
-<div id="addTickerContainer">
-<input id="tickerInput" type="text"></input>
-<button id="tickerAddButton">Add</button>
-<button id="tickerRemoveButton">Remove</button>
-</div>
-<div id="marketGraphContainer">
-<form action="" method="post">
-	<select name="tickers" id="tickerSelect"></select>
-</form>
-</div>
-<div id="portfolioGraphContainer">
-<form action="" method="post">
-	<select name="tickers" id="positionSelect"></select>
-</form>
-</div>
-<div id="strategyGraphContainer">
-<form action="" method="post" id="strategyForm">
-	<select name="strategy" id="strategySelect"></select>
-</form>
-</div>
-<script src = "https://d3js.org/d3.v4.js"></script>
-<script src = "scripts/main.js"></script>
+<body>
+	<div id="strategyGraphContainer">
+		<form action="" method="post" id="strategyForm">
+			<select name="strategy" id="strategySelect"></select>
+		</form>
+	</div>
+	<div id="addTickerContainer">
+		<input id="tickerInput" type="text"></input>
+		<button id="tickerAddButton">Add</button>
+		<button id="tickerRemoveButton">Remove</button>
+	</div>
+	<div id="marketGraphContainer">
+		<form action="" method="post">
+			<select name="tickers" id="tickerSelect"></select>
+		</form>
+	</div>
+	<div id="portfolioGraphContainer">
+		<form action="" method="post">
+			<select name="tickers" id="positionSelect"></select>
+		</form>
+	</div>
+</body>
+<head>
+	<link rel="stylesheet" href="styles/main.css">
+	<script src = "https://d3js.org/d3.v4.js"></script>
+	<script src = "scripts/main.js"></script>
+</head>

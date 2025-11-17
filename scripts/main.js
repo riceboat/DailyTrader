@@ -45,9 +45,9 @@ function displayMarketGraph(symbolString) {
             // Add Y axis
             var y = d3.scaleLinear()
                 .domain([d3.min(parsed, function(d) {
-                    return +d.c;
+                    return +d.c * 0.9;
                 }), d3.max(parsed, function(d) {
-                    return +d.c;
+                    return +d.c * 1.1;
                 })])
                 .range([height, 0]);
             svg.append("g")
@@ -116,9 +116,9 @@ function displayPortfolioGraph(graphNum) {
             // Add Y axis
             var y = d3.scaleLinear()
                 .domain([d3.min(parsed, function(d) {
-                    return +d.c;
+                    return +d.c * 0.9;
                 }), d3.max(parsed, function(d) {
-                    return +d.c;
+                    return +d.c * 1.1;
                 })])
                 .range([height, 0]);
             svg.append("g")
@@ -220,9 +220,9 @@ function displayStrategyGraph(strategyName) {
             // Add Y axis
             var y = d3.scaleLinear()
                 .domain([d3.min(parsed, function(d) {
-                    return +d.c;
+                	return +d.c * 0.9;	
                 }), d3.max(parsed, function(d) {
-                    return +d.c;
+                   return +d.c * 1.1;
                 })])
                 .range([height, 0]);
 			var rgb = function(d){
