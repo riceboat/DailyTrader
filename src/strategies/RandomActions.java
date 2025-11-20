@@ -1,6 +1,8 @@
 package strategies;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import backTesting.TradingAction;
@@ -24,5 +26,17 @@ public class RandomActions implements Strategy {
 			chosenActions.add(possibleActions.get(ranInt));
 		}
 		return chosenActions;
+	}
+
+	@Override
+	public List<String> getParameterNames() {
+		ArrayList<String> nameStrings = new ArrayList<String>();
+		nameStrings.add("actionProbability");
+		return nameStrings;
+	}
+
+	@Override
+	public void setParameters(Map<String, String> parameterMap) {
+		this.actionProbability = Double.parseDouble(parameterMap.get("actionProbability"));
 	}
 }

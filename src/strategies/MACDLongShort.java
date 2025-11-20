@@ -1,6 +1,9 @@
 package strategies;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import backTesting.TradingAction;
 import dailyTrader.Bars;
 import dailyTrader.Market;
@@ -60,5 +63,19 @@ public class MACDLongShort implements Strategy {
 			}
 		}
 		return chosenActions;
+	}
+	public List<String> getParameterNames() {
+		ArrayList<String> nameStrings = new ArrayList<String>();
+		nameStrings.add("longMA");
+		nameStrings.add("shortMA");
+		nameStrings.add("signalMA");
+		return nameStrings;
+	}
+
+	@Override
+	public void setParameters(Map<String, String> parameterMap) {
+		this.longMA = (int) Double.parseDouble(parameterMap.get("longMA"));
+		this.shortMA = (int) Double.parseDouble(parameterMap.get("shortMA"));
+		this.signalMA = (int) Double.parseDouble(parameterMap.get("signalMA"));
 	}
 }

@@ -70,7 +70,6 @@ public class StrategySimulator {
 				totPercent -= percent;
 				double qty = cashCommitment / currentPrice;
 				Position newPosition = new Position(symbol, side, qty, currentPrice);
-				System.out.println(portfolio.getSimCash());
 				portfolio.setSimCash(portfolio.getSimCash() - cashCommitment);
 				portfolio.addPosition(newPosition);
 			}

@@ -1,6 +1,9 @@
 package strategies;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import backTesting.TradingAction;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
@@ -28,5 +31,15 @@ public class BuyAndHoldEverything implements Strategy {
 			}
 		}
 		return chosenActions;
+	}
+
+	@Override
+	public List<String> getParameterNames() {
+		ArrayList<String> nameStrings = new ArrayList<String>();
+		return nameStrings;
+	}
+
+	@Override
+	public void setParameters(Map<String, String> parameterMap) {
 	}
 }

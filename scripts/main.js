@@ -155,7 +155,34 @@ function displayPortfolioGraph(graphNum) {
         })
 }
 
-function displayStrategyGraph(strategyName) {
+function displayStrategyParameters(strategyName) {
+    d3.request("api").post("strategyNames=1",
+        function readData(data) {
+            data = JSON.parse(data.response);
+            var strategies = data.strategies;
+            strategies.forEach(function readParameters(strategies, i, a) {
+                if (strategies.name == strategyName) {
+                    strategies.parameters.forEach(function eachParameter(parameter, i, a) {
+                        var paramInput = document.createElement("input");
+                        paramInput.setAttribute("type", "number");
+                        paramInput.setAttribute("id", "strategyParameter");
+                        paramInput.setAttribute("class", "strategyParameterInput");
+                        paramInput.setAttribute("name", parameter);
+						paramInput.value = 0.5;
+                        var paramLabel = document.createElement("label");
+                        paramLabel.setAttribute("id", "strategyParameter");
+                        paramLabel.setAttribute("class", "strategyParameterLabel");
+                        paramLabel.innerHTML = parameter + ": ";
+                        document.getElementById("strategyParameterContainer").appendChild(paramLabel);
+                        document.getElementById("strategyParameterContainer").appendChild(paramInput);
+                    });
+                }
+            });
+        }
+    );
+}
+
+function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
     var margin = {
             top: 10,
             right: 30,
@@ -175,8 +202,14 @@ function displayStrategyGraph(strategyName) {
         .append("g")
         .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
-
-    d3.request("api").post("strategy=" + strategyName,
+    var requestString = "strategy=" + strategyName;
+	if (parameterNames){
+		for (let i = 0; i < parameterNames.length; i++) {
+	 		requestString += "&"+ parameterNames[i] + "=" + parameterValues[i];
+		}
+	}
+	console.log(requestString);
+    d3.request("api").post(requestString,
         function readData(error, data) {
             if (error) throw error;
             var selectedStrategy = "";
@@ -185,15 +218,15 @@ function displayStrategyGraph(strategyName) {
             d3.request("api").post("strategyNames=1",
                 function readData(data) {
                     data = JSON.parse(data.response);
-                    var names = data.strategyNames;
+                    var strategies = data.strategies;
                     var strategySelect = document.getElementById("strategySelect");
-                    names.forEach(function readName(name, i, a) {
+                    strategies.forEach(function readName(strategies, i, a) {
                         var option = document.createElement("option");
-                        option.value = name;
-                        option.text = name;
+                        option.value = strategies.name;
+                        option.text = strategies.name;
                         option.setAttribute("id", "strategyOption");
                         strategySelect.appendChild(option);
-                        if (name == selectedStrategy) {
+                        if (strategies.name == selectedStrategy) {
                             option.setAttribute("selected", "");
                         }
                     });
@@ -220,37 +253,37 @@ function displayStrategyGraph(strategyName) {
             // Add Y axis
             var y = d3.scaleLinear()
                 .domain([d3.min(parsed, function(d) {
-                	return +d.c * 0.9;	
+                    return +d.c * 0.9;
                 }), d3.max(parsed, function(d) {
-                   return +d.c * 1.1;
+                    return +d.c * 1.1;
                 })])
                 .range([height, 0]);
-			var rgb = function(d){
-				switch(d[0].side){
-					case "SHORT":
-						return "#ff0000";
-						break;
-					case "LONG":
-						return "#00ff00";
-						break;
-					case "HOLD":
-						return "#fffb00";					
-						break;
-					case "SELL":
-						return "#0004ff";											
-						break;
-				}
-			};
-			var symbols = function(d){
-				var result = "";
-				
-				for (let i =0; i < Object.keys(d).length;i++){
-					if (d[i].side != "HOLD"){
-						result += d[i].symbol + " ";
-					}
-				}
-				return result;
-			}
+            var rgb = function(d) {
+                switch (d[0].side) {
+                    case "SHORT":
+                        return "#ff0000";
+                        break;
+                    case "LONG":
+                        return "#00ff00";
+                        break;
+                    case "HOLD":
+                        return "#fffb00";
+                        break;
+                    case "SELL":
+                        return "#0004ff";
+                        break;
+                }
+            };
+            var symbols = function(d) {
+                var result = "";
+
+                for (let i = 0; i < Object.keys(d).length; i++) {
+                    if (d[i].side != "HOLD") {
+                        result += d[i].symbol + " ";
+                    }
+                }
+                return result;
+            }
             svg.append("g")
                 .call(d3.axisLeft(y));
             // Add the line
@@ -268,19 +301,19 @@ function displayStrategyGraph(strategyName) {
                         return y(d.c)
                     })
                 );
-			for (var obj in data.actions) {
-            	svg.append('circle')
-                	.attr('cx', x(parsed[obj].t))
-                	.attr('cy', y(parsed[obj].c))
-                	.attr('r', 3)
-                	.attr('fill', rgb(data.actions[obj]));
-				svg.append("text")
-					.attr("x", x(parsed[obj].t))
-					.attr('y', y(parsed[obj].c))
-					.attr('fill', rgb(data.actions[obj]))
-					.text(symbols(data.actions[obj]));
-					
-			}
+            for (var obj in data.actions) {
+                svg.append('circle')
+                    .attr('cx', x(parsed[obj].t))
+                    .attr('cy', y(parsed[obj].c))
+                    .attr('r', 3)
+                    .attr('fill', rgb(data.actions[obj]));
+                svg.append("text")
+                    .attr("x", x(parsed[obj].t))
+                    .attr('y', y(parsed[obj].c))
+                    .attr('fill', rgb(data.actions[obj]))
+                    .text(symbols(data.actions[obj]));
+
+            }
         })
 }
 
@@ -327,7 +360,6 @@ function removeTicker(ticker) {
         d3.selectAll('#tickerGraph').remove();
         d3.selectAll('#tickerOption').remove();
         updateTickerOptions(ticker);
-        console.log(newTicker);
         displayMarketGraph(newTicker);
     });
 }
@@ -336,6 +368,7 @@ addTicker("NVDA");
 addTicker("AAPL");
 displayPortfolioGraph(0);
 displayStrategyGraph("BuyAndHoldEverything");
+displayStrategyParameters("BuyAndHoldEverything");
 document.querySelector('#tickerSelect').addEventListener("change", function() {
     ticker = this.value;
     d3.selectAll('#tickerGraph').remove();
@@ -343,15 +376,25 @@ document.querySelector('#tickerSelect').addEventListener("change", function() {
     updateTickerOptions(ticker);
     displayMarketGraph(ticker);
 });
+
 document.querySelector('#strategySelect').addEventListener("change", function() {
     strategyName = this.value;
-    d3.selectAll('#strategyGraph').remove();
-    d3.selectAll('#strategyOption').remove();
-    displayStrategyGraph(strategyName);
+    d3.selectAll('#strategyParameter').remove();
+    displayStrategyParameters(strategyName);
+
 });
 document.querySelector('#tickerAddButton').addEventListener("click", function() {
     var ticker = document.querySelector("#tickerInput").value;
     addTicker(ticker);
+});
+document.querySelector('#runStrategyButton').addEventListener("click", function() {
+    strategyName = document.querySelector('#strategySelect').value;
+    const parameterValues = Array.from(document.querySelectorAll('.strategyParameterInput')).map(input => input.value)
+    const parameterNames = Array.from(document.querySelectorAll('.strategyParameterInput')).map(input => input.name)
+    d3.selectAll('#strategyOption').remove();
+    d3.selectAll('#strategyGraph').remove();
+	console.log(parameterValues);
+    displayStrategyGraph(strategyName, parameterNames, parameterValues);
 });
 document.querySelector('#tickerRemoveButton').addEventListener("click", function() {
     var ticker = document.querySelector("#tickerInput").value;

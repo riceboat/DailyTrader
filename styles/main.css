@@ -9,3 +9,6 @@ path.domain,
 .tick text {
   fill: red;
 }
+.strategyParameterLabel {
+	color : white;
+}

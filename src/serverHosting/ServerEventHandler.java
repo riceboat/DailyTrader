@@ -6,6 +6,9 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 import org.json.JSONArray;
@@ -26,10 +29,14 @@ public class ServerEventHandler implements Runnable {
 	private APIManager apiManager;
 	private String responseString;
 	private HttpExchange httpExchange;
-
+	private ArrayList<Strategy> strategyObjectList;
 	public ServerEventHandler(APIManager apiManager, HttpExchange httpExchange) {
 		this.apiManager = apiManager;
 		this.httpExchange = httpExchange;
+		strategyObjectList = new ArrayList<Strategy>();
+		strategyObjectList.add(new BuyAndHoldEverything());
+		strategyObjectList.add(new RandomActions(0));
+		strategyObjectList.add(new MACDLongShort(0, 0, 0));
 	}
 
 	static String readFile(String filePath) {
@@ -44,14 +51,19 @@ public class ServerEventHandler implements Runnable {
 		if (uriString.equals("")) {
 			return readFile("pages/index.html");
 		} else if (uriString.equals("api")) {
-			//System.out.println("API CALL -> " + requestString);
-			//double startTime = System.nanoTime();
-			String[] splitString = requestString.split("="); // seperate via equals
-			String keyString = splitString[0];
-			String valueString = splitString[1];
+			System.out.println("API CALL -> " + requestString);
+			double startTime = System.nanoTime();
+			HashMap<String, String> requestStringHashMap = new HashMap<String,String>();
+			String[] splitParamStrings = requestString.split("&");
+			for (int i =0; i< splitParamStrings.length;i++) {
+				String[] splitString = splitParamStrings[i].split("="); // seperate via equals
+				requestStringHashMap.put(splitString[0], splitString[1]);
+			}
+			String keyString = requestString.split("=")[0];
+			String valueString = requestStringHashMap.get(keyString);
 			String result = null;
 			if (keyString.equals("strategy")) {
-				result = runStrategy(valueString, 365);
+				result = runStrategy(valueString, 365, requestStringHashMap);
 			} else if (keyString.equals("portfolio")) {
 				result = apiManager.getPortfolio(Integer.parseInt(valueString)).toJSON().toString();
 			} else if (keyString.equals("addTicker")) {
@@ -76,17 +88,19 @@ public class ServerEventHandler implements Runnable {
 			} else if (keyString.equals("market")) {
 				result = apiManager.createMarketFromTickers(apiManager.getSavedTickers(), 365).toJSON().toString();
 			} else if (keyString.equals("strategyNames")) {
-
 				JSONObject strategyNames = new JSONObject();
 				JSONArray nameArray = new JSONArray();
-				nameArray.put("MACDLongShort");
-				nameArray.put("RandomActions");
-				nameArray.put("BuyAndHoldEverything");
-				strategyNames.put("strategyNames", nameArray);
+				for (Strategy strategy : strategyObjectList) {
+					JSONObject strategyParameterJsonObject = new JSONObject();
+					strategyParameterJsonObject.put("name", strategy.getName());
+					strategyParameterJsonObject.put("parameters", strategy.getParameterNames());
+					nameArray.put(strategyParameterJsonObject);
+				}
+				strategyNames.put("strategies", nameArray);
 				result = strategyNames.toString();
 			}
-			//double timeTaken = (System.nanoTime() - startTime) / 1000000;
-			//System.out.println(requestString + " took " + timeTaken + "ms");
+			double timeTaken = (System.nanoTime() - startTime) / 1000000;
+			System.out.println(requestString + " took " + timeTaken + "ms");
 			return result;
 
 		} else {
@@ -126,14 +140,13 @@ public class ServerEventHandler implements Runnable {
 
 	}
 
-	public String runStrategy(String strategyString, int numDays) {
+	public String runStrategy(String strategyString, int numDays, Map<String, String> parameterMap) {
 		Strategy strategy = new BuyAndHoldEverything();
-		if (strategyString.equals("MACDLongShort")) {
-			strategy = new MACDLongShort(12, 24, 9);
-		} else if (strategyString.equals("BuyAndHoldEverything")) {
-			strategy = new BuyAndHoldEverything();
-		} else if (strategyString.equals("RandomActions")) {
-			strategy = new RandomActions(0.05);
+		for (Strategy strat : strategyObjectList) {
+			if(strat.getName().equals(strategyString)) {
+				strategy = strat;
+				strategy.setParameters(parameterMap);
+			} 
 		}
 		Portfolio portfolio = apiManager.getPortfolio(numDays);
 		JSONManager jsonManager = new JSONManager();
