@@ -315,20 +315,25 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
                     })
                 );
             for (var obj in data.actions) {
-                svg.append('circle')
-                    .attr('cx', x(parsed[obj].t))
-                    .attr('cy', y(parsed[obj].c))
-                    .attr('r', 3)
-                    .attr('fill', rgb(data.actions[obj]));
-                svg.append("text")
+                
+				svg.append("text")
                     .attr("x", x(parsed[obj].t))
                     .attr('y', y(parsed[obj].c))
                     .attr('fill', rgb(data.actions[obj]))
-                    .text(symbols(data.actions[obj]));
-
+                    .text(symbols(data.actions[obj]))
+					.attr("id", x(parsed[obj].t))
+					.attr("display", "none");
+				svg.append('circle')
+                    .attr('cx', x(parsed[obj].t))
+                    .attr('cy', y(parsed[obj].c) - 10)
+                    .attr('r', 3)
+                    .attr('fill', rgb(data.actions[obj]))
+					.attr('onmouseover', "document.getElementById("+x(parsed[obj].t)+").style.display = 'block';")
+					.attr('onmouseout', "document.getElementById("+x(parsed[obj].t)+").style.display = 'none';");
             }
         })
 }
+
 
 function updateTickerOptions(ticker) {
     d3.request("api").post("savedTickers=30",
