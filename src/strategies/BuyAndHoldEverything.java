@@ -8,6 +8,7 @@ import dailyTrader.Portfolio;
 import dailyTrader.Side;
 
 public class BuyAndHoldEverything extends Strategy {
+	@Override
 	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio, ArrayList<TradingAction> possibleActions,
 			int day) {
 		ArrayList<TradingAction> chosenActions = new ArrayList<TradingAction>();
@@ -20,5 +21,10 @@ public class BuyAndHoldEverything extends Strategy {
 			}
 		}
 		return chosenActions;
+	}
+
+	@Override
+	public int getDataCollectionPeriod() {
+		return 0;
 	}
 }

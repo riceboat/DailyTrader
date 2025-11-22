@@ -37,4 +37,6 @@ public abstract class Strategy {
 		return parameterMap.get(parameterName);
 	}
 
+	// how many days of data do we need to collect before we start making decisions?
+	public abstract int getDataCollectionPeriod();
 }

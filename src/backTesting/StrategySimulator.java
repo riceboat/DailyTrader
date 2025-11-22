@@ -26,7 +26,7 @@ public class StrategySimulator {
 		this.portfolio.setSimCash(portfolio.getCash());
 		this.market = market;
 		this.maxDays = market.getDays();
-		this.day = maxDays / 2;
+		this.day = 0;
 		this.debug = debug;
 	}
 
@@ -112,9 +112,8 @@ public class StrategySimulator {
 
 	public ArrayList<TradingAction> step() {
 		ArrayList<TradingAction> possibleActions = getPossibleActions();
-		ArrayList<TradingAction> bestActions = strategy.decide(market.firstNDays(day), portfolio, possibleActions,
-				day - maxDays / 2);
-		debugPrint("Start of day " + Integer.toString(day - maxDays / 2) + ":\n");
+		ArrayList<TradingAction> bestActions = strategy.decide(market.firstNDays(day), portfolio, possibleActions, day);
+		debugPrint("Start of day " + Integer.toString(day) + ":\n");
 		updatePortfolio();
 		debugPrint(portfolio);
 		debugPrint("POSSIBLE ACTIONS");
@@ -137,13 +136,14 @@ public class StrategySimulator {
 		Bars portfolioBars = new Bars();
 		String strategyName = strategy.getName();
 		HashMap<Integer, ArrayList<TradingAction>> actionsHashMap = new HashMap<Integer, ArrayList<TradingAction>>();
+		day = strategy.getDataCollectionPeriod();
 		while (day < maxDays - 2) {
 			Bar oldBar = market.getBars().get(0).get(day);
 			Bar newBar = new Bar(strategyName, portfolio.getSimValue(), oldBar.start, oldBar.end);
 			portfolioBars.add(newBar);
 			ArrayList<TradingAction> selectedActions = step();
 			if (selectedActions.size() != 0) {
-				actionsHashMap.put(day - maxDays / 2, selectedActions);
+				actionsHashMap.put(day, selectedActions);
 			}
 		}
 		return new SimulationResults(portfolioBars, actionsHashMap);

@@ -38,4 +38,9 @@ public class SMACrossover extends Strategy {
 		return chosenActions;
 	}
 
+	@Override
+	public int getDataCollectionPeriod() {
+		return (int) Math.max(getParameterValue("longMA"), getParameterValue("shortMA"));
+	}
+
 }

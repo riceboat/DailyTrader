@@ -23,7 +23,6 @@ import dailyTrader.JSONManager;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
 import strategies.BuyAndHoldEverything;
-import strategies.MACDLongShort;
 import strategies.RandomActions;
 import strategies.SMACrossover;
 import strategies.Strategy;
@@ -41,7 +40,6 @@ public class ServerEventHandler implements Runnable {
 		strategyObjectList = new ArrayList<Strategy>();
 		strategyObjectList.add(new BuyAndHoldEverything());
 		strategyObjectList.add(new RandomActions(0));
-		strategyObjectList.add(new MACDLongShort(0, 0, 0));
 		strategyObjectList.add(new SMACrossover(0, 0));
 	}
 

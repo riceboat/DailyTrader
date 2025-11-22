@@ -12,6 +12,7 @@ public class RandomActions extends Strategy {
 		setParameterValue("actionProbability", actionProbability);
 	}
 
+	@Override
 	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio, ArrayList<TradingAction> possibleActions,
 			int day) {
 		double actionProbability = getParameterValue("actionProbability");
@@ -22,5 +23,10 @@ public class RandomActions extends Strategy {
 			chosenActions.add(possibleActions.get(ranInt));
 		}
 		return chosenActions;
+	}
+
+	@Override
+	public int getDataCollectionPeriod() {
+		return 0;
 	}
 }
