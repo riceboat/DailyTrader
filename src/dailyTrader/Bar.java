@@ -27,12 +27,14 @@ public class Bar {
 		before = before.minus(Duration.ofMinutes(minutes));
 		this.start = Date.from(before);
 	}
+
 	public Bar(String symbol, double c, Date start, Date end) {
 		this.c = c;
 		this.start = start;
 		this.end = end;
 		this.symbol = symbol;
 	}
+
 	public String toString() {
 		String s = "Open: " + Double.toString(o) + "\n";
 		s += "Close: " + Double.toString(c) + "\n";

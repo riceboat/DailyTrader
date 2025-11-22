@@ -66,7 +66,6 @@ public class CorrelationMatrix {
 		return new CorrelationMatrix(matrix);
 	}
 
-
 	public CorrelationMatrix correlationsAbove(double val) {
 		HashMap<Pair, Double> correlations = new HashMap<Pair, Double>();
 		for (Entry<Pair, Double> entry : matrix.entrySet()) {
@@ -91,12 +90,12 @@ public class CorrelationMatrix {
 		ArrayList<Pair> ignoreList = new ArrayList<Pair>();
 		matrix = new HashMap<Pair, Double>();
 		for (Bars bars : barsList) {
-				Pair pair = new Pair(bars.symbol, bars2.symbol);
-				if (!ignoreList.contains(pair) && !bars.symbol.equals(bars2.symbol)) {
-					matrix.put(pair, bars.crossCorrelationAtLag(bars2, 0));
-					ignoreList.add(pair);
-				}
+			Pair pair = new Pair(bars.symbol, bars2.symbol);
+			if (!ignoreList.contains(pair) && !bars.symbol.equals(bars2.symbol)) {
+				matrix.put(pair, bars.crossCorrelationAtLag(bars2, 0));
+				ignoreList.add(pair);
 			}
+		}
 		return new CorrelationMatrix(matrix);
 	}
 

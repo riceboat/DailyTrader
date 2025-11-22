@@ -57,6 +57,7 @@ public class Portfolio implements JSONConvertible {
 		}
 		return value;
 	}
+
 	public double getSimValue() {
 		double value = getSimCash();
 		for (Position position : positions) {
@@ -94,9 +95,11 @@ public class Portfolio implements JSONConvertible {
 		portfolioJsonObject.put("account", linkedAccount.toJSON());
 		return portfolioJsonObject;
 	}
+
 	public double getSimCash() {
 		return simCash;
 	}
+
 	public double getCash() {
 		return linkedAccount.getCash();
 	}

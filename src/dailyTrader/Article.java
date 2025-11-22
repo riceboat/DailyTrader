@@ -19,7 +19,7 @@ public class Article {
 		headline = jsonObject.getString("headline");
 		url = jsonObject.getString("url");
 		symbols = jsonObject.getJSONArray("symbols").toList();
-		content = jsonObject.getString("content").replaceAll("\\<[^>]*>","");
+		content = jsonObject.getString("content").replaceAll("\\<[^>]*>", "");
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss'Z'");
 		try {
 			date = formatter.parse(jsonObject.getString("updated_at"));

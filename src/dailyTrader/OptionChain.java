@@ -31,6 +31,7 @@ public class OptionChain {
 		}
 		return null;
 	}
+
 	OptionChain filterByOpenInterest(int oi) {
 		ArrayList<Option> newChain = new ArrayList<Option>();
 		for (Option o : options) {
@@ -40,7 +41,7 @@ public class OptionChain {
 		}
 		return new OptionChain(newChain, apiManager);
 	}
-	
+
 	OptionChain filterByAskPrice(double price) {
 		ArrayList<Option> newChain = new ArrayList<Option>();
 		for (Option o : options) {
@@ -50,7 +51,7 @@ public class OptionChain {
 		}
 		return new OptionChain(newChain, apiManager);
 	}
-	
+
 	OptionChain filterByBidPrice(int price) {
 		ArrayList<Option> newChain = new ArrayList<Option>();
 		for (Option o : options) {
@@ -60,7 +61,7 @@ public class OptionChain {
 		}
 		return new OptionChain(newChain, apiManager);
 	}
-	
+
 	OptionChain filterByImpliedVolatility(double iv) {
 		ArrayList<Option> newChain = new ArrayList<Option>();
 		for (Option o : options) {

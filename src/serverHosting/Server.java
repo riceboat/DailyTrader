@@ -14,6 +14,7 @@ public class Server {
 	static String indexPageURI;
 	APIManager apiManager;
 	ArrayList<Thread> threads;
+
 	public Server(APIManager apiManager) {
 		threads = new ArrayList<Thread>();
 		this.apiManager = apiManager;
@@ -35,11 +36,10 @@ public class Server {
 		server.stop(0);
 	}
 
-	
 	class MyHandler implements HttpHandler {
 		@Override
 		public void handle(HttpExchange httpExchange) throws IOException {
-			ServerEventHandler eventHandler =  new ServerEventHandler(apiManager, httpExchange);
+			ServerEventHandler eventHandler = new ServerEventHandler(apiManager, httpExchange);
 			Thread t1 = new Thread(eventHandler);
 			t1.start();
 		}

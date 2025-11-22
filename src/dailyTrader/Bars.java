@@ -24,7 +24,7 @@ public class Bars implements JSONConvertible {
 			this.add(bar);
 		}
 	}
-	
+
 	public void add(Bar bar) {
 		bars.add(bar);
 		symbol = bar.symbol;
@@ -119,13 +119,15 @@ public class Bars implements JSONConvertible {
 	public double getSMALastNDays(int days) {
 		return getNLastDays(days).getAverage();
 	}
-	public ArrayList<Double> getValues(){
+
+	public ArrayList<Double> getValues() {
 		ArrayList<Double> values = new ArrayList<Double>();
 		for (Bar bar : bars) {
 			values.add(bar.c);
 		}
 		return values;
 	}
+
 	public double crossCorrelationAtLag(Bars bars2, int lag) {
 		double meanA = this.getAverageReturn();
 		double meanB = bars2.getAverageReturn();

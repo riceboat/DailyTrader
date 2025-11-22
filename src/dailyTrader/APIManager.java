@@ -627,7 +627,7 @@ public class APIManager {
 	public Object readFromAPICache(String apiRequestString) throws IOException {
 		String hashString = Integer.toString(apiRequestString.hashCode());
 		Object o = dataCacheJsonObject.get(hashString);
-		//System.out.println("Read " + apiRequestString + " from cache");
+		// System.out.println("Read " + apiRequestString + " from cache");
 		return o;
 	}
 

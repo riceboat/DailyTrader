@@ -37,9 +37,8 @@ public class Position {
 		if (side == Side.LONG) {
 			this.pnl = currentPrice * qty - entryPrice * qty;
 			this.pnlpc = ((currentPrice * qty) / (entryPrice * qty) - 1) * 100;
-		}
-		else if (side == Side.SHORT) {
-			this.pnl =  entryPrice * qty - currentPrice * qty;
+		} else if (side == Side.SHORT) {
+			this.pnl = entryPrice * qty - currentPrice * qty;
 			this.pnlpc = ((entryPrice * qty) / (currentPrice * qty) - 1) * 100;
 		}
 	}

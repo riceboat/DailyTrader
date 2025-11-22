@@ -11,8 +11,9 @@ public class MetricEvaluator {
 		double val = probabilityOfProfit - probaibilityOfMaxLoss;
 		return val;
 	}
+
 	double getPairsTradingScore() {
-		
+
 		return 0.0;
 	}
 }

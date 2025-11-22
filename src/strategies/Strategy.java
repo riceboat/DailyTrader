@@ -4,21 +4,24 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import backTesting.TradingAction;
+import dailyTrader.Bars;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
 
 public abstract class Strategy {
 	private LinkedHashMap<String, Double> parameterMap;
+
 	public Strategy() {
 		parameterMap = new LinkedHashMap<String, Double>();
 	}
+
 	public abstract ArrayList<TradingAction> decide(Market market, Portfolio portfolio,
 			ArrayList<TradingAction> possibleActions, int day);
 
 	public String getName() {
 		return this.getClass().getSimpleName();
 	}
-	
+
 	public ArrayList<String> getParameterNames() {
 		return new ArrayList<String>(parameterMap.keySet());
 	}
@@ -26,7 +29,7 @@ public abstract class Strategy {
 	public void setParameters(LinkedHashMap<String, Double> parameterMap) {
 		this.parameterMap = parameterMap;
 	}
-	
+
 	public void setParameterValue(String parameterName, double parameterValue) {
 		parameterMap.put(parameterName, parameterValue);
 	}

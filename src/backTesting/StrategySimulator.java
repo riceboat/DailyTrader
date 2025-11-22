@@ -117,7 +117,8 @@ public class StrategySimulator {
 
 	public ArrayList<TradingAction> step() {
 		ArrayList<TradingAction> possibleActions = getPossibleActions();
-		ArrayList<TradingAction> bestActions = strategy.decide(market.firstNDays(day), portfolio, possibleActions, day - maxDays / 2);
+		ArrayList<TradingAction> bestActions = strategy.decide(market.firstNDays(day), portfolio, possibleActions,
+				day - maxDays / 2);
 		debugPrint("Start of day " + Integer.toString(day - maxDays / 2) + ":\n");
 		updatePortfolio();
 		debugPrint(portfolio);

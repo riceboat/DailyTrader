@@ -30,7 +30,7 @@ public class JSONManager {
 		JSONObject marketJSON = new JSONObject(readJSONFile(filePath));
 		return new Market(marketJSON);
 	}
-	
+
 	public String toJSONString(JSONConvertible object) {
 		return object.toJSON().toString();
 	}

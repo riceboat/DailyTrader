@@ -48,7 +48,7 @@ public class DecisionEngine {
 				"LLY", // Eli Lilly and Co.
 				"PFE", // Pfizer Inc.
 		};
-		
+
 		double cash = apiManager.getAccount().cash;
 		for (String symbol : symbols) {
 			double price = apiManager.getAskPrice(symbol);
@@ -71,7 +71,7 @@ public class DecisionEngine {
 		decisions = bestPerStock();
 		decisions = sortOptions();
 		System.out.println(decisions);
-		//System.out.println(apiManager.getMostRecentNewsToday(symbols));
+		// System.out.println(apiManager.getMostRecentNewsToday(symbols));
 		ArrayList<Option> heldOptions = new ArrayList<Option>();
 		for (Position position : portfolio.positions) {
 			Option option = apiManager.getOptionByCode(position.symbol);
@@ -90,7 +90,7 @@ public class DecisionEngine {
 		ArrayList<Option> buyTheseOptions = new ArrayList<Option>();
 		Option bestOption = bestOption(cash);
 		if (bestOption != null) {
-			if (decisions.get(bestOption)  > 40) {
+			if (decisions.get(bestOption) > 40) {
 				cash -= bestOption.askPrice * 100;
 				buyTheseOptions.add(bestOption);
 			}
@@ -110,7 +110,7 @@ public class DecisionEngine {
 		double score = eval.evaluate(option);
 		decisions.put(option, score);
 	}
-	
+
 	public void addDecisions(OptionChain chain) {
 		MetricEvaluator eval = new MetricEvaluator();
 		ArrayList<Option> options = chain.options;
@@ -131,24 +131,26 @@ public class DecisionEngine {
 		}
 		return best;
 	}
-	
+
 	public Option bestCallOption(String underlying, double cash) {
 		Option best = null;
 		double top = Double.NEGATIVE_INFINITY;
 		for (Option option : decisions.keySet()) {
-			if (decisions.get(option) > top && option.askPrice * 100 < cash && option.type.equals("call") && option.underlyingSymbol.equals(underlying)) {
+			if (decisions.get(option) > top && option.askPrice * 100 < cash && option.type.equals("call")
+					&& option.underlyingSymbol.equals(underlying)) {
 				top = decisions.get(option);
 				best = option;
 			}
 		}
 		return best;
 	}
-	
+
 	public Option bestPutOption(String underlying, double cash) {
 		Option best = null;
 		double top = Double.NEGATIVE_INFINITY;
 		for (Option option : decisions.keySet()) {
-			if (decisions.get(option) > top && option.askPrice * 100 < cash && option.type.equals("put") && option.underlyingSymbol.equals(underlying)) {
+			if (decisions.get(option) > top && option.askPrice * 100 < cash && option.type.equals("put")
+					&& option.underlyingSymbol.equals(underlying)) {
 				top = decisions.get(option);
 				best = option;
 			}
