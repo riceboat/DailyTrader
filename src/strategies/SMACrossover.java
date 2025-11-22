@@ -7,9 +7,9 @@ import dailyTrader.Market;
 import dailyTrader.Portfolio;
 import dailyTrader.Side;
 
-public class SingleStockSMACrossover extends Strategy {
+public class SMACrossover extends Strategy {
 
-	public SingleStockSMACrossover(int longMA, int shortMA) {
+	public SMACrossover(int longMA, int shortMA) {
 		setParameterValue("longMA", longMA);
 		setParameterValue("shortMA", shortMA);
 	}

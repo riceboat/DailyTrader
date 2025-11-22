@@ -38,7 +38,7 @@ public class ServerEventHandler implements Runnable {
 		strategyObjectList.add(new BuyAndHoldEverything());
 		strategyObjectList.add(new RandomActions(0));
 		strategyObjectList.add(new MACDLongShort(0, 0, 0));
-		strategyObjectList.add(new SingleStockSMACrossover(0, 0));
+		strategyObjectList.add(new SMACrossover(0, 0));
 	}
 
 	static String readFile(String filePath) {
