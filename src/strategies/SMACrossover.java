@@ -1,6 +1,7 @@
 package strategies;
 
 import java.util.ArrayList;
+
 import backTesting.TradingAction;
 import dailyTrader.Bars;
 import dailyTrader.Market;
@@ -17,7 +18,7 @@ public class SMACrossover extends Strategy {
 	@Override
 	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio, ArrayList<TradingAction> possibleActions,
 			int day) {
-		ArrayList<TradingAction> chosenActions = new ArrayList<TradingAction>();
+		ArrayList<TradingAction> chosenActions = new ArrayList<>();
 		int longMA = (int) getParameterValue("longMA");
 		int shortMA = (int) getParameterValue("shortMA");
 		for (TradingAction action : possibleActions) {
@@ -34,7 +35,6 @@ public class SMACrossover extends Strategy {
 				chosenActions.add(action);
 			}
 		}
-
 		return chosenActions;
 	}
 

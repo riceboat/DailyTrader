@@ -24,8 +24,6 @@ public class TradingAction {
 			s += "SHORT ";
 		} else if (side == Side.SELL) {
 			s += "SELL ";
-		} else if (side == Side.HOLD) {
-			s += "HOLD ";
 		}
 		s += codeString + " ";
 		if (type == Type.OPTION) {

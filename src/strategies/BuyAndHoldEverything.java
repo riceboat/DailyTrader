@@ -1,6 +1,7 @@
 package strategies;
 
 import java.util.ArrayList;
+
 import backTesting.TradingAction;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
@@ -14,12 +15,6 @@ public class BuyAndHoldEverything extends Strategy {
 			for (TradingAction action : possibleActions) {
 				if (action.getSide() == Side.LONG) {
 					action.setPercentage(1.0);
-					chosenActions.add(action);
-				}
-			}
-		} else {
-			for (TradingAction action : possibleActions) {
-				if (action.getSide() == Side.HOLD) {
 					chosenActions.add(action);
 				}
 			}

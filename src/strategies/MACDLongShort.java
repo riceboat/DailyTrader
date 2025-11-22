@@ -1,6 +1,7 @@
 package strategies;
 
 import java.util.ArrayList;
+
 import backTesting.TradingAction;
 import dailyTrader.Bars;
 import dailyTrader.Market;
@@ -55,8 +56,6 @@ public class MACDLongShort extends Strategy {
 				if (actionDiff > 0) {
 					chosenActions.add(action);
 				}
-			} else if (action.getSide() == Side.HOLD) {
-				chosenActions.add(action);
 			}
 		}
 		return chosenActions;

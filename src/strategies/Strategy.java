@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import backTesting.TradingAction;
-import dailyTrader.Bars;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
 
@@ -37,4 +36,5 @@ public abstract class Strategy {
 	public double getParameterValue(String parameterName) {
 		return parameterMap.get(parameterName);
 	}
+
 }

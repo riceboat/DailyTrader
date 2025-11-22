@@ -44,7 +44,6 @@ public class StrategySimulator {
 
 		for (Position position : portfolio.positions) {
 			possibleActions.add(new TradingAction(Type.STOCK, Side.SELL, 1, position.symbol));
-			possibleActions.add(new TradingAction(Type.STOCK, Side.HOLD, 1, position.symbol));
 		}
 
 		return possibleActions;
@@ -81,10 +80,6 @@ public class StrategySimulator {
 				Position newPosition = new Position(symbol, side, qty, currentPrice);
 				portfolio.setSimCash(portfolio.getSimCash() - cashCommitment);
 				portfolio.addPosition(newPosition);
-			}
-				break;
-			case HOLD: {
-
 			}
 				break;
 			case SELL: {

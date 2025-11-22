@@ -1,6 +1,19 @@
 // set the dimensions and margins of the graph
 divId = 0;
+function stringToColor(string) {
 
+	let hash = 0;
+	  for (const char of string) {
+	    hash = (hash << 5) - hash + (char.charCodeAt(0) - 65);
+	    hash |= 0;
+	  }
+	hash =  hash % 255;
+	let c = d3.hsl("white");
+	c.s = 1;
+	c.l = 0.5;
+	c.h = hash;
+    return c;
+}
 function displayMarketGraph(symbolString) {
     var margin = {
             top: 10,
@@ -53,10 +66,11 @@ function displayMarketGraph(symbolString) {
             svg.append("g")
                 .call(d3.axisLeft(y));
             // Add the line
+			let c = stringToColor(symbolString);
             svg.append("path")
                 .datum(parsed)
                 .attr("fill", "none")
-                .attr("stroke", "steelblue")
+                .attr("stroke", c)
                 .attr("stroke-width", 1.5)
                 .attr("id", "marketLine")
                 .attr("d", d3.line()
@@ -208,7 +222,6 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
 	 		requestString += "&"+ parameterNames[i] + "=" + parameterValues[i];
 		}
 	}
-	console.log(requestString);
     d3.request("api").post(requestString,
         function readData(error, data) {
             if (error) throw error;
@@ -328,6 +341,7 @@ function updateTickerOptions(ticker) {
                 var option = document.createElement("option");
                 option.value = name;
                 option.text = name;
+				option.style.color = stringToColor(name);
                 option.setAttribute("id", "tickerOption");
                 if (name == ticker) {
                     option.setAttribute("selected", "");
@@ -391,7 +405,6 @@ document.querySelector('#runStrategyButton').addEventListener("click", function(
     const parameterNames = Array.from(document.querySelectorAll('.strategyParameterInput')).map(input => input.name)
     d3.selectAll('#strategyOption').remove();
     d3.selectAll('#strategyGraph').remove();
-	console.log(parameterValues);
     displayStrategyGraph(strategyName, parameterNames, parameterValues);
 });
 document.querySelector('#tickerRemoveButton').addEventListener("click", function() {

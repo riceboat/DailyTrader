@@ -22,7 +22,11 @@ import dailyTrader.APIManager;
 import dailyTrader.JSONManager;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
-import strategies.*;
+import strategies.BuyAndHoldEverything;
+import strategies.MACDLongShort;
+import strategies.RandomActions;
+import strategies.SMACrossover;
+import strategies.Strategy;
 
 public class ServerEventHandler implements Runnable {
 	int i = 0;
