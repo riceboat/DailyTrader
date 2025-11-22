@@ -4,10 +4,10 @@ body {
 }
 path.domain,
 .tick line {
-  stroke: red;
+  stroke: white;
 }
 .tick text {
-  fill: red;
+  fill: white;
 }
 .strategyParameterLabel {
 	color : white;

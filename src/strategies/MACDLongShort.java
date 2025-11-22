@@ -1,9 +1,6 @@
 package strategies;
 
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import backTesting.TradingAction;
 import dailyTrader.Bars;
 import dailyTrader.Market;
@@ -11,15 +8,12 @@ import dailyTrader.Portfolio;
 import dailyTrader.Side;
 
 // this strategy shorts the lowest macd and longs the highest
-public class MACDLongShort implements Strategy {
-	private int longMA;
-	private int shortMA;
-	private int signalMA;
+public class MACDLongShort extends Strategy {
 
 	public MACDLongShort(int longMA, int shortMA, int signalMA) {
-		this.longMA = longMA;
-		this.shortMA = shortMA;
-		this.signalMA = signalMA;
+		setParameterValue("longMA", longMA);
+		setParameterValue("shortMA", shortMA);
+		setParameterValue("signalMA", signalMA);
 	}
 
 	@Override
@@ -29,6 +23,9 @@ public class MACDLongShort implements Strategy {
 		double highestDiff = Double.NEGATIVE_INFINITY;
 		String lowestDiffSymbol = null;
 		String highestDiffSymbol = null;
+		int longMA = (int) getParameterValue("longMA");
+		int shortMA = (int) getParameterValue("shortMA");
+		int signalMA = (int) getParameterValue("signalMA");
 		for (Bars bars : market.getBars()) {
 			double macd = bars.getSMALastNDays(shortMA) - bars.getSMALastNDays(longMA);
 			double signal = bars.getSMALastNDays(signalMA);
@@ -63,19 +60,5 @@ public class MACDLongShort implements Strategy {
 			}
 		}
 		return chosenActions;
-	}
-	public List<String> getParameterNames() {
-		ArrayList<String> nameStrings = new ArrayList<String>();
-		nameStrings.add("longMA");
-		nameStrings.add("shortMA");
-		nameStrings.add("signalMA");
-		return nameStrings;
-	}
-
-	@Override
-	public void setParameters(Map<String, String> parameterMap) {
-		this.longMA = (int) Double.parseDouble(parameterMap.get("longMA"));
-		this.shortMA = (int) Double.parseDouble(parameterMap.get("shortMA"));
-		this.signalMA = (int) Double.parseDouble(parameterMap.get("signalMA"));
 	}
 }

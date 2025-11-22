@@ -364,8 +364,6 @@ function removeTicker(ticker) {
     });
 }
 addTicker("SPY");
-addTicker("NVDA");
-addTicker("AAPL");
 displayPortfolioGraph(0);
 displayStrategyGraph("BuyAndHoldEverything");
 displayStrategyParameters("BuyAndHoldEverything");

@@ -7,8 +7,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import java.util.Scanner;
 
 import org.json.JSONArray;
@@ -30,6 +30,7 @@ public class ServerEventHandler implements Runnable {
 	private String responseString;
 	private HttpExchange httpExchange;
 	private ArrayList<Strategy> strategyObjectList;
+
 	public ServerEventHandler(APIManager apiManager, HttpExchange httpExchange) {
 		this.apiManager = apiManager;
 		this.httpExchange = httpExchange;
@@ -37,6 +38,7 @@ public class ServerEventHandler implements Runnable {
 		strategyObjectList.add(new BuyAndHoldEverything());
 		strategyObjectList.add(new RandomActions(0));
 		strategyObjectList.add(new MACDLongShort(0, 0, 0));
+		strategyObjectList.add(new SingleStockSMACrossover(0, 0));
 	}
 
 	static String readFile(String filePath) {
@@ -53,9 +55,9 @@ public class ServerEventHandler implements Runnable {
 		} else if (uriString.equals("api")) {
 			System.out.println("API CALL -> " + requestString);
 			double startTime = System.nanoTime();
-			HashMap<String, String> requestStringHashMap = new HashMap<String,String>();
+			LinkedHashMap<String, String> requestStringHashMap = new LinkedHashMap<String, String>();
 			String[] splitParamStrings = requestString.split("&");
-			for (int i =0; i< splitParamStrings.length;i++) {
+			for (int i = 0; i < splitParamStrings.length; i++) {
 				String[] splitString = splitParamStrings[i].split("="); // seperate via equals
 				requestStringHashMap.put(splitString[0], splitString[1]);
 			}
@@ -63,7 +65,13 @@ public class ServerEventHandler implements Runnable {
 			String valueString = requestStringHashMap.get(keyString);
 			String result = null;
 			if (keyString.equals("strategy")) {
-				result = runStrategy(valueString, 365, requestStringHashMap);
+				LinkedHashMap<String, Double> convertedHashMap = new LinkedHashMap<String, Double>();
+				for (Entry<String, String> entry : requestStringHashMap.entrySet()) {
+					if (!keyString.equals(entry.getKey())) {
+						convertedHashMap.put(entry.getKey(), Double.parseDouble(entry.getValue()));
+					}
+				}
+				result = runStrategy(valueString, 365, convertedHashMap);
 			} else if (keyString.equals("portfolio")) {
 				result = apiManager.getPortfolio(Integer.parseInt(valueString)).toJSON().toString();
 			} else if (keyString.equals("addTicker")) {
@@ -140,13 +148,13 @@ public class ServerEventHandler implements Runnable {
 
 	}
 
-	public String runStrategy(String strategyString, int numDays, Map<String, String> parameterMap) {
+	public String runStrategy(String strategyString, int numDays, LinkedHashMap<String, Double> parameterMap) {
 		Strategy strategy = new BuyAndHoldEverything();
 		for (Strategy strat : strategyObjectList) {
-			if(strat.getName().equals(strategyString)) {
+			if (strat.getName().equals(strategyString)) {
 				strategy = strat;
 				strategy.setParameters(parameterMap);
-			} 
+			}
 		}
 		Portfolio portfolio = apiManager.getPortfolio(numDays);
 		JSONManager jsonManager = new JSONManager();
