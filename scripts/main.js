@@ -478,6 +478,7 @@ function addTicker(ticker) {
         d3.selectAll('#tickerGraph').remove();
         d3.selectAll('#tickerOption').remove();
         displayMarketGraph(ticker);
+		document.querySelector('#runStrategyButton').click();
     });
 
 }
@@ -495,12 +496,14 @@ function removeTicker(ticker) {
         d3.selectAll('#tickerOption').remove();
         updateTickerOptions(ticker);
         displayMarketGraph(newTicker);
+		document.querySelector('#runStrategyButton').click();
     });
 }
-addTicker("SPY");
+
 displayPortfolioGraph(0);
 displayStrategyGraph("BuyAndHoldEverything");
 displayStrategyParameters("BuyAndHoldEverything");
+displayMarketGraph("SPY");
 document.querySelector('#tickerSelect').addEventListener("change", function() {
     ticker = this.value;
     d3.selectAll('#tickerGraph').remove();

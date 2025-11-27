@@ -134,7 +134,7 @@ public class StrategySimulator {
 	public Bars run() {
 		Bars portfolioBars = new Bars();
 		String strategyName = strategy.getName();
-		day = strategy.getDataCollectionPeriod() + 1;
+		day = strategy.getDataCollectionPeriod();
 		while (day < maxDays - 2) {
 			Bar oldBar = market.getBars().get(0).get(day);
 			Bar newBar = new Bar(strategyName, portfolio.getSimValue(), oldBar.start, oldBar.end);
