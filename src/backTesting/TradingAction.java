@@ -1,9 +1,12 @@
 package backTesting;
 
+import org.json.JSONObject;
+
+import dailyTrader.JSONConvertible;
 import dailyTrader.Side;
 import dailyTrader.Type;
 
-public class TradingAction {
+public class TradingAction implements JSONConvertible {
 	Side side;
 	double percent;
 	Type type;
@@ -16,6 +19,7 @@ public class TradingAction {
 		this.codeString = codeString;
 	}
 
+	@Override
 	public String toString() {
 		String s = "";
 		if (side == Side.LONG) {
@@ -54,5 +58,15 @@ public class TradingAction {
 
 	public void setPercentage(double percent) {
 		this.percent = percent;
+	}
+
+	@Override
+	public JSONObject toJSON() {
+		JSONObject jsonBar = new JSONObject();
+		jsonBar.put("symbol", codeString);
+		jsonBar.put("percentage", percent);
+		jsonBar.put("side", side);
+		jsonBar.put("type", type);
+		return jsonBar;
 	}
 }

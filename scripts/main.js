@@ -227,6 +227,7 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
             if (error) throw error;
             var selectedStrategy = "";
             data = JSON.parse(data.response);
+			
             selectedStrategy = Object.keys(data)[0];
             d3.request("api").post("strategyNames=1",
                 function readData(data) {
@@ -272,7 +273,7 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
                 })])
                 .range([height, 0]);
             var rgb = function(d) {
-                switch (d[0].side) {
+                switch (d.side) {
                     case "SHORT":
                         return "#ff0000";
                         break;
@@ -289,14 +290,36 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
             };
             var symbols = function(d) {
                 var result = "";
-
-                for (let i = 0; i < Object.keys(d).length; i++) {
-                    if (d[i].side != "HOLD") {
-                        result += d[i].symbol + " ";
-                    }
+                 if (d.side != "HOLD") {
+                        result += d.symbol + " ";
                 }
                 return result;
             }
+			for (var key in data) {
+				for (var obj in data[key]){
+				dataPoint = data[key][obj];
+				for (var i in dataPoint.tradingActions){
+					tradingAction = dataPoint.tradingActions[i];
+					timeStamp = d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(dataPoint.t);
+					closePrice = dataPoint.c;
+					svg.append("text")
+			        .attr("x", x(timeStamp))
+			        .attr('y', y(closePrice))
+			        .attr('fill', rgb(tradingAction))
+			        .text(symbols(tradingAction))
+					.attr("id", x(timeStamp))
+					.style("text-anchor", "middle")
+					.attr("display", "none");
+				svg.append('circle')
+			        .attr('cx', x(timeStamp))
+			        .attr('cy', y(closePrice))
+			        .attr('r', 3)
+			        .attr('fill', rgb(tradingAction))		
+					.attr('onmouseover', "document.getElementById("+x(timeStamp)+").style.display = 'block';")
+					.attr('onmouseout', "document.getElementById("+x(timeStamp)+").style.display = 'none';");
+				}
+			}
+			}
             svg.append("g")
                 .call(d3.axisLeft(y));
             // Add the line
@@ -314,25 +337,6 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
                         return y(d.c)
                     })
                 );
-            for (var obj in data.actions) {
-                
-				svg.append("text")
-                    .attr("x", x(parsed[obj].t))
-                    .attr('y', y(parsed[obj].c))
-                    .attr('fill', rgb(data.actions[obj]))
-                    .text(symbols(data.actions[obj]))
-					.attr("id", x(parsed[obj].t))
-					.style("text-anchor", "middle")
-					.attr("display", "none");
-				svg.append('circle')
-                    .attr('cx', x(parsed[obj].t))
-                    .attr('cy', y(parsed[obj].c))
-                    .attr('r', 3)
-                    .attr('fill', rgb(data.actions[obj]))		
-					.attr('onmouseover', "document.getElementById("+x(parsed[obj].t)+").style.display = 'block';")
-					.attr('onmouseout', "document.getElementById("+x(parsed[obj].t)+").style.display = 'none';");
-				
-            }
         })
 }
 

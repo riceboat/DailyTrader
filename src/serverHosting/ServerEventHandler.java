@@ -16,9 +16,9 @@ import org.json.JSONObject;
 
 import com.sun.net.httpserver.HttpExchange;
 
-import backTesting.SimulationResults;
 import backTesting.StrategySimulator;
 import dailyTrader.APIManager;
+import dailyTrader.Bars;
 import dailyTrader.JSONManager;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
@@ -163,8 +163,8 @@ public class ServerEventHandler implements Runnable {
 
 		Market market = apiManager.createMarketFromTickers(apiManager.getSavedTickers(), numDays);
 		StrategySimulator simulator = new StrategySimulator(strategy, market, portfolio, false);
-		SimulationResults simulationResults = simulator.run();
-		return jsonManager.toJSONString(simulationResults);
+		Bars simulationBars = simulator.run();
+		return simulationBars.toJSON().toString();
 	}
 
 	public String getJSONResponse() {

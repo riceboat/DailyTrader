@@ -1,7 +1,6 @@
 package backTesting;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import dailyTrader.Bar;
 import dailyTrader.Bars;
@@ -132,20 +131,19 @@ public class StrategySimulator {
 		}
 	}
 
-	public SimulationResults run() {
+	public Bars run() {
 		Bars portfolioBars = new Bars();
 		String strategyName = strategy.getName();
-		HashMap<Integer, ArrayList<TradingAction>> actionsHashMap = new HashMap<Integer, ArrayList<TradingAction>>();
-		day = strategy.getDataCollectionPeriod();
+		day = strategy.getDataCollectionPeriod() + 1;
 		while (day < maxDays - 2) {
 			Bar oldBar = market.getBars().get(0).get(day);
 			Bar newBar = new Bar(strategyName, portfolio.getSimValue(), oldBar.start, oldBar.end);
-			portfolioBars.add(newBar);
 			ArrayList<TradingAction> selectedActions = step();
-			if (selectedActions.size() != 0) {
-				actionsHashMap.put(day, selectedActions);
+			for (TradingAction tradingAction : selectedActions) {
+				newBar.AddAction(tradingAction);
 			}
+			portfolioBars.add(newBar);
 		}
-		return new SimulationResults(portfolioBars, actionsHashMap);
+		return portfolioBars;
 	}
 }
