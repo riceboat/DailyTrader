@@ -67,6 +67,58 @@ function displayMarketGraph(symbolString) {
                 .range([height, 0]);
             svg.append("g")
                 .call(d3.axisLeft(y));
+				var focus = svg
+							    .append('g')
+							    .append('circle')
+							      .style("fill", "none")
+							      .attr("stroke", "white")
+							      .attr('r', 4)
+							      .style("opacity", 0)
+								  .style("color", "white");
+
+							  // Create the text that travels along the curve of chart
+							  var focusText = svg
+							    .append('g')
+							    .append('text')
+							      .style("opacity", 0)
+							      .attr("text-anchor", "left")
+							      .attr("alignment-baseline", "middle")
+								  .style("fill", "white");
+							function mouseover() {
+							    focus.style("opacity", 1);
+							    focusText.style("opacity",1);
+							  }
+
+							  function mousemove() {
+								
+							    mX = d3.mouse(this)[0];
+								mY = d3.mouse(this)[1];
+								for (var i in data){
+									bsX = d3.bisector((d) => x(d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(d.t))).left(data[i], mX);
+									xVal = d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(data[i][bsX].t);
+									yVal = data[i][bsX].c;
+									focus
+									      .attr("cx", x(xVal))
+									      .attr("cy", y(yVal));
+									    focusText
+									      .html("$" + yVal.toFixed(2) + ": " + xVal.toLocaleDateString('en-US'))
+									      .attr("x", x(xVal))
+									      .attr("y", mY);
+									    }
+								}
+							  function mouseout() {
+							    focus.style("opacity", 0);
+							    focusText.style("opacity", 0);
+							  }
+
+							svg.append('rect')
+							    .style("fill", "none")
+							    .style("pointer-events", "all")
+							    .attr('width', width)
+							    .attr('height', height)
+							    .on('mouseover', mouseover)
+							    .on('mousemove', mousemove)
+							    .on('mouseout', mouseout);
             // Add the line
             let c = stringToColor(symbolString);
             svg.append("path")
@@ -301,7 +353,58 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
                 }
                 return result;
             }
+			var focus = svg
+			    .append('g')
+			    .append('circle')
+			      .style("fill", "none")
+			      .attr("stroke", "white")
+			      .attr('r', 4)
+			      .style("opacity", 0)
+				  .style("color", "white");
 
+			  // Create the text that travels along the curve of chart
+			  var focusText = svg
+			    .append('g')
+			    .append('text')
+			      .style("opacity", 0)
+			      .attr("text-anchor", "left")
+			      .attr("alignment-baseline", "middle")
+				  .style("fill", "white");
+			function mouseover() {
+			    focus.style("opacity", 1);
+			    focusText.style("opacity",1);
+			  }
+
+			  function mousemove() {
+				
+			    mX = d3.mouse(this)[0];
+				mY = d3.mouse(this)[1];
+				for (var i in data){
+					bsX = d3.bisector((d) => x(d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(d.t))).left(data[i], mX);
+					xVal = d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(data[i][bsX].t);
+					yVal = data[i][bsX].c;
+					focus
+					      .attr("cx", x(xVal))
+					      .attr("cy", y(yVal));
+					    focusText
+					      .html("$" + yVal.toFixed(2) + ": " + xVal.toLocaleDateString('en-US'))
+					      .attr("x", x(xVal))
+					      .attr("y", mY);
+					    }
+				}
+			  function mouseout() {
+			    focus.style("opacity", 0);
+			    focusText.style("opacity", 0);
+			  }
+
+			svg.append('rect')
+			    .style("fill", "none")
+			    .style("pointer-events", "all")
+			    .attr('width', width)
+			    .attr('height', height)
+			    .on('mouseover', mouseover)
+			    .on('mousemove', mousemove)
+			    .on('mouseout', mouseout);
             svg.append("g")
                 .call(d3.axisLeft(y));
             // Add the line
