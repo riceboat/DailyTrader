@@ -1,19 +1,21 @@
 // set the dimensions and margins of the graph
 divId = 0;
+
 function stringToColor(string) {
 
-	let hash = 0;
-	  for (const char of string) {
-	    hash = (hash << 5) - hash + (char.charCodeAt(0) - 65);
-	    hash |= 0;
-	  }
-	hash =  hash % 255;
-	let c = d3.hsl("white");
-	c.s = 1;
-	c.l = 0.5;
-	c.h = hash;
+    let hash = 0;
+    for (const char of string) {
+        hash = (hash << 5) - hash + (char.charCodeAt(0) - 65);
+        hash |= 0;
+    }
+    hash = hash % 255;
+    let c = d3.hsl("white");
+    c.s = 1;
+    c.l = 0.5;
+    c.h = hash;
     return c;
 }
+
 function displayMarketGraph(symbolString) {
     var margin = {
             top: 10,
@@ -66,7 +68,7 @@ function displayMarketGraph(symbolString) {
             svg.append("g")
                 .call(d3.axisLeft(y));
             // Add the line
-			let c = stringToColor(symbolString);
+            let c = stringToColor(symbolString);
             svg.append("path")
                 .datum(parsed)
                 .attr("fill", "none")
@@ -182,7 +184,7 @@ function displayStrategyParameters(strategyName) {
                         paramInput.setAttribute("id", "strategyParameter");
                         paramInput.setAttribute("class", "strategyParameterInput");
                         paramInput.setAttribute("name", parameter);
-						paramInput.value = 0.5;
+                        paramInput.value = 0.5;
                         var paramLabel = document.createElement("label");
                         paramLabel.setAttribute("id", "strategyParameter");
                         paramLabel.setAttribute("class", "strategyParameterLabel");
@@ -217,17 +219,17 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
         .attr("transform",
             "translate(" + margin.left + "," + margin.top + ")");
     var requestString = "strategy=" + strategyName;
-	if (parameterNames){
-		for (let i = 0; i < parameterNames.length; i++) {
-	 		requestString += "&"+ parameterNames[i] + "=" + parameterValues[i];
-		}
-	}
+    if (parameterNames) {
+        for (let i = 0; i < parameterNames.length; i++) {
+            requestString += "&" + parameterNames[i] + "=" + parameterValues[i];
+        }
+    }
     d3.request("api").post(requestString,
         function readData(error, data) {
             if (error) throw error;
             var selectedStrategy = "";
             data = JSON.parse(data.response);
-			
+
             selectedStrategy = Object.keys(data)[0];
             d3.request("api").post("strategyNames=1",
                 function readData(data) {
@@ -273,53 +275,33 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
                 })])
                 .range([height, 0]);
             var rgb = function(d) {
-                switch (d.side) {
-                    case "SHORT":
-                        return "#ff0000";
-                        break;
-                    case "LONG":
-                        return "#00ff00";
-                        break;
-                    case "HOLD":
-                        return "#fffb00";
-                        break;
-                    case "SELL":
-                        return "#0004ff";
-                        break;
+                for (let i = 0; i < d.length; i++) {
+                    switch (d[i].side) {
+                        case "SHORT":
+                            return "#ff0000";
+                            break;
+                        case "LONG":
+                            return "#00ff00";
+                            break;
+                        case "HOLD":
+                            return "#fffb00";
+                            break;
+                        case "SELL":
+                            return "#0004ff";
+                            break;
+                    }
                 }
             };
             var symbols = function(d) {
                 var result = "";
-                 if (d.side != "HOLD") {
-                        result += d.symbol + " ";
+                for (let i = 0; i < d.length; i++) {
+                    if (d[i].side != "HOLD") {
+                        result += d[i].symbol + " ";
+                    }
                 }
                 return result;
             }
-			for (var key in data) {
-				for (var obj in data[key]){
-				dataPoint = data[key][obj];
-				for (var i in dataPoint.tradingActions){
-					tradingAction = dataPoint.tradingActions[i];
-					timeStamp = d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(dataPoint.t);
-					closePrice = dataPoint.c;
-					svg.append("text")
-			        .attr("x", x(timeStamp))
-			        .attr('y', y(closePrice))
-			        .attr('fill', rgb(tradingAction))
-			        .text(symbols(tradingAction))
-					.attr("id", x(timeStamp))
-					.style("text-anchor", "middle")
-					.attr("display", "none");
-				svg.append('circle')
-			        .attr('cx', x(timeStamp))
-			        .attr('cy', y(closePrice))
-			        .attr('r', 3)
-			        .attr('fill', rgb(tradingAction))		
-					.attr('onmouseover', "document.getElementById("+x(timeStamp)+").style.display = 'block';")
-					.attr('onmouseout', "document.getElementById("+x(timeStamp)+").style.display = 'none';");
-				}
-			}
-			}
+
             svg.append("g")
                 .call(d3.axisLeft(y));
             // Add the line
@@ -337,6 +319,30 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
                         return y(d.c)
                     })
                 );
+            for (var key in data) {
+                for (var obj in data[key]) {
+                    dataPoint = data[key][obj];
+                    if (dataPoint.tradingActions.length > 0) {
+                        timeStamp = d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(dataPoint.t);
+                        closePrice = dataPoint.c;
+                        svg.append("text")
+                            .attr("x", x(timeStamp))
+                            .attr('y', y(closePrice))
+                            .attr('fill', rgb(dataPoint.tradingActions))
+                            .text(symbols(dataPoint.tradingActions))
+                            .attr("id", x(timeStamp))
+                            .style("text-anchor", "right")
+                            .attr("display", "none");
+                        svg.append('circle')
+                            .attr('cx', x(timeStamp))
+                            .attr('cy', y(closePrice))
+                            .attr('r', 3)
+                            .attr('fill', rgb(dataPoint.tradingActions))
+                            .attr('onmouseover', "document.getElementById(" + x(timeStamp) + ").style.display = 'block';")
+                            .attr('onmouseout', "document.getElementById(" + x(timeStamp) + ").style.display = 'none';");
+                    }
+                }
+            }
         })
 }
 
@@ -352,7 +358,7 @@ function updateTickerOptions(ticker) {
                 var option = document.createElement("option");
                 option.value = name;
                 option.text = name;
-				option.style.color = stringToColor(name);
+                option.style.color = stringToColor(name);
                 option.setAttribute("id", "tickerOption");
                 if (name == ticker) {
                     option.setAttribute("selected", "");
