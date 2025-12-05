@@ -13,8 +13,8 @@ public class RandomActions extends Strategy {
 	}
 
 	@Override
-	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio, ArrayList<TradingAction> possibleActions,
-			int day) {
+	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio,
+			ArrayList<TradingAction> possibleActions) {
 		double actionProbability = getParameterValue("actionProbability");
 		ArrayList<TradingAction> chosenActions = new ArrayList<TradingAction>();
 		Random random = new Random();

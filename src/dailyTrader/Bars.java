@@ -1,6 +1,7 @@
 package dailyTrader;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 
 import org.json.JSONArray;
@@ -28,6 +29,14 @@ public class Bars implements JSONConvertible {
 	public void add(Bar bar) {
 		bars.add(bar);
 		symbol = bar.symbol;
+	}
+
+	public ArrayList<Date> getDates() {
+		ArrayList<Date> dates = new ArrayList<Date>();
+		for (Bar bar : bars) {
+			dates.add(bar.start);
+		}
+		return dates;
 	}
 
 	public double getAverage() {
@@ -143,6 +152,7 @@ public class Bars implements JSONConvertible {
 		return Math.round(result * 100.0) / 100.0;
 	}
 
+	@Override
 	public JSONObject toJSON() {
 		JSONObject jsonBars = new JSONObject();
 		JSONArray jsonBarArray = new JSONArray();

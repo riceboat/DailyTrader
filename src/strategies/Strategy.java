@@ -15,7 +15,7 @@ public abstract class Strategy {
 	}
 
 	public abstract ArrayList<TradingAction> decide(Market market, Portfolio portfolio,
-			ArrayList<TradingAction> possibleActions, int day);
+			ArrayList<TradingAction> possibleActions);
 
 	public String getName() {
 		return this.getClass().getSimpleName();

@@ -11,8 +11,8 @@ public class BuyAndHoldEverything extends Strategy {
 	Boolean boughtAll = false;
 
 	@Override
-	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio, ArrayList<TradingAction> possibleActions,
-			int day) {
+	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio,
+			ArrayList<TradingAction> possibleActions) {
 		ArrayList<TradingAction> chosenActions = new ArrayList<TradingAction>();
 		if (portfolio.getCash() > 0 && !boughtAll) {
 			for (TradingAction action : possibleActions) {

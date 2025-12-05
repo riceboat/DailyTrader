@@ -1,44 +1,77 @@
 package dailyTrader;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import backTesting.TradingAction;
 
 public class Portfolio implements JSONConvertible {
 	public ArrayList<Position> positions;
 	public Bars portfolioHistoryBars;
 	private Account linkedAccount;
-	private double simCash;
+	private double cash;
 
 	public Portfolio(JSONObject portfolioJSON, Account account) {
 		positions = new ArrayList<Position>();
 		this.linkedAccount = account;
-		simCash = 0;
+		cash = account.getCash();
 		JSONArray positionsJsonArray = portfolioJSON.getJSONArray("positions");
 		for (int i = 0; i < positionsJsonArray.length(); i++) {
 			Position position = new Position(positionsJsonArray.getJSONObject(i));
-			addPosition(position);
+			positions.add(position);
 		}
 		this.portfolioHistoryBars = new Bars(portfolioJSON.getJSONObject("history"));
 	}
 
-	public void addPosition(Position position) {
-		positions.add(position);
+	public void performTradingActions(ArrayList<TradingAction> tradingActions, Market market, Date date) {
+		for (Position position : positions) {
+			position.update(market.getSymbolValueOnDate(position.symbol, date));
+		}
+		double totalCommitment = 0;
+		for (TradingAction tradingAction : tradingActions) {
+			totalCommitment += tradingAction.getPercentage();
+		}
+		for (TradingAction tradingAction : tradingActions) {
+			switch (tradingAction.getSide()) {
+			case LONG: {
+				double entryPrice = market.getSymbolValueOnDate(tradingAction.getSymbol(), date);
+				double cashCommitment = cash * (tradingAction.getPercentage() / totalCommitment);
+				double qtyBought = cashCommitment / entryPrice;
+				Position newPosition = new Position(tradingAction.getSymbol(), tradingAction.getSide(), qtyBought,
+						entryPrice);
+				positions.add(newPosition);
+				cash -= cashCommitment;
+				totalCommitment -= tradingAction.getPercentage();
+				break;
+			}
+			case SHORT: {
+				// TODO implement shorting
+				break;
+			}
+			case SELL: {
+				double exitPrice = market.getSymbolValueOnDate(tradingAction.getSymbol(), date);
+				Position soldPosition = getPositionByCode(tradingAction.getSymbol());
+				double positionQty = soldPosition.qty;
+				double qtySold = tradingAction.getPercentage() * positionQty;
+				double cashGained = qtySold * exitPrice;
+				cash += cashGained;
+				positions.remove(soldPosition);
+				break;
+			}
+			}
+
+		}
+		for (Position position : positions) {
+			position.update(market.getSymbolValueOnDate(position.symbol, date));
+		}
+
 	}
 
 	public Bars getHistory() {
 		return portfolioHistoryBars;
-	}
-
-	public void removePosition(Position position) {
-		Position posToRemove = null;
-		for (Position pos : positions) {
-			if (pos.symbol.equals(position.symbol)) {
-				posToRemove = pos;
-			}
-		}
-		positions.remove(posToRemove);
 	}
 
 	public Position getPositionByCode(String code) {
@@ -59,17 +92,18 @@ public class Portfolio implements JSONConvertible {
 	}
 
 	public double getSimValue() {
-		double value = getSimCash();
+		double value = cash;
 		for (Position position : positions) {
 			value += position.qty * position.entryPrice + position.pnl;
 		}
 		return value;
 	}
 
+	@Override
 	public String toString() {
 		String s = "";
 		s += "Portfolio cash: " + Double.toString(getCash()) + "\n";
-		s += "Portfolio sim cash: " + Double.toString(getSimCash()) + "\n";
+		s += "Portfolio sim cash: " + Double.toString(cash) + "\n";
 		double value = getValue();
 		double pnl = 0;
 		for (Position position : positions) {
@@ -96,15 +130,8 @@ public class Portfolio implements JSONConvertible {
 		return portfolioJsonObject;
 	}
 
-	public double getSimCash() {
-		return simCash;
-	}
-
 	public double getCash() {
-		return linkedAccount.getCash();
+		return cash;
 	}
 
-	public void setSimCash(double cash) {
-		this.simCash = cash;
-	}
 }

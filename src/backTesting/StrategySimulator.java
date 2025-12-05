@@ -1,6 +1,7 @@
 package backTesting;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import dailyTrader.Bar;
 import dailyTrader.Bars;
@@ -15,17 +16,12 @@ public class StrategySimulator {
 	Strategy strategy;
 	Portfolio portfolio;
 	Market market;
-	int day;
-	int maxDays;
 	boolean debug;
 
 	public StrategySimulator(Strategy strategy, Market market, Portfolio portfolio, boolean debug) {
 		this.strategy = strategy;
 		this.portfolio = portfolio;
-		this.portfolio.setSimCash(portfolio.getCash());
 		this.market = market;
-		this.maxDays = market.getDays();
-		this.day = 0;
 		this.debug = debug;
 	}
 
@@ -33,9 +29,9 @@ public class StrategySimulator {
 		ArrayList<TradingAction> possibleActions = new ArrayList<TradingAction>();
 		for (Bars bars : market.getBars()) {
 			Bar barToday = bars.get(bars.size() - 1);
-			if (barToday.c < portfolio.getSimCash()) {
+			if (barToday.c < portfolio.getCash()) {
 				possibleActions.add(new TradingAction(Type.STOCK, Side.LONG, 1, barToday.symbol));
-				if (portfolio.getSimCash() > 2000) {
+				if (portfolio.getCash() > 2000) {
 					possibleActions.add(new TradingAction(Type.STOCK, Side.SHORT, 1, barToday.symbol));
 				}
 			}
@@ -48,80 +44,14 @@ public class StrategySimulator {
 		return possibleActions;
 	}
 
-	public void reset() {
-		day = maxDays / 2;
-	}
-
-	public void performTradingActions(ArrayList<TradingAction> tradingActions) {
-		double totPercent = 0;
-		for (TradingAction tradingAction : tradingActions) {
-			totPercent += tradingAction.percent;
-		}
-		for (TradingAction tradingAction : tradingActions) {
-			String symbol = tradingAction.codeString;
-			Side side = tradingAction.side;
-			double percent = tradingAction.percent;
-			double currentPrice = getAssetValue(symbol);
-			switch (tradingAction.side) {
-			case LONG: {
-				double cashCommitment = ((percent / totPercent) * portfolio.getSimCash());
-				totPercent -= percent;
-				double qty = cashCommitment / currentPrice;
-				Position newPosition = new Position(symbol, side, qty, currentPrice);
-				portfolio.setSimCash(portfolio.getSimCash() - cashCommitment);
-				portfolio.addPosition(newPosition);
-			}
-				break;
-			case SHORT: {
-				double cashCommitment = ((percent / totPercent) * portfolio.getSimCash());
-				totPercent -= percent;
-				double qty = cashCommitment / currentPrice;
-				Position newPosition = new Position(symbol, side, qty, currentPrice);
-				portfolio.setSimCash(portfolio.getSimCash() - cashCommitment);
-				portfolio.addPosition(newPosition);
-			}
-				break;
-			case SELL: {
-				Position position = portfolio.getPositionByCode(symbol);
-				double cost = percent * getAssetValue(symbol) * position.qty;
-				portfolio.setSimCash(portfolio.getSimCash() + cost);
-				portfolio.removePosition(position);
-			}
-				break;
-			default:
-				break;
-			}
-		}
-	}
-
-	public double getAssetValue(String symbol) {
-		for (Bars bars : market.getBars()) {
-			if (symbol.equals(bars.symbol)) {
-				return bars.get(day).c;
-			}
-		}
-		return 0.0;
-	}
-
-	public void updatePortfolio() {
-		for (Position position : portfolio.positions) {
-			position.update(getAssetValue(position.symbol));
-		}
-	}
-
-	public ArrayList<TradingAction> step() {
+	public ArrayList<TradingAction> step(Date currentDate) {
 		ArrayList<TradingAction> possibleActions = getPossibleActions();
-		ArrayList<TradingAction> bestActions = strategy.decide(market.firstNDays(day), portfolio, possibleActions, day);
-		debugPrint("Start of day " + Integer.toString(day) + ":\n");
-		updatePortfolio();
-		debugPrint(portfolio);
-		debugPrint("POSSIBLE ACTIONS");
-		debugPrint(possibleActions);
+		ArrayList<TradingAction> bestActions = strategy.decide(market.dataBefore(currentDate), portfolio,
+				possibleActions);
+		debugPrint("Start of day " + currentDate.toString() + ":\n");
 		debugPrint("SELECTED -> " + bestActions);
-		performTradingActions(bestActions);
+		portfolio.performTradingActions(bestActions, market, currentDate);
 		debugPrint(portfolio);
-		debugPrint("End of day\n");
-		day++;
 		return bestActions;
 	}
 
@@ -134,15 +64,19 @@ public class StrategySimulator {
 	public Bars run() {
 		Bars portfolioBars = new Bars();
 		String strategyName = strategy.getName();
-		day = strategy.getDataCollectionPeriod();
-		while (day < maxDays - 2) {
-			Bar oldBar = market.getBars().get(0).get(day);
-			Bar newBar = new Bar(strategyName, portfolio.getSimValue(), oldBar.start, oldBar.end);
-			ArrayList<TradingAction> selectedActions = step();
-			for (TradingAction tradingAction : selectedActions) {
-				newBar.AddAction(tradingAction);
+		int dataCollectionDays = strategy.getDataCollectionPeriod();
+		int dataPointsCollected = 0;
+		for (Date currentDate : market.getOpenDates()) {
+			if (dataPointsCollected < dataCollectionDays) {
+				dataPointsCollected++; // Dont run unless we have collected enough data for the given strategy
+			} else {
+				ArrayList<TradingAction> selectedActions = step(currentDate);
+				Bar newBar = new Bar(strategyName, portfolio.getSimValue(), currentDate, currentDate);
+				for (TradingAction tradingAction : selectedActions) {
+					newBar.AddAction(tradingAction);
+				}
+				portfolioBars.add(newBar);
 			}
-			portfolioBars.add(newBar);
 		}
 		return portfolioBars;
 	}

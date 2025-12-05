@@ -422,6 +422,7 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
                         return y(d.c)
                     })
                 );
+			console.log(data);
             for (var key in data) {
                 for (var obj in data[key]) {
                     dataPoint = data[key][obj];

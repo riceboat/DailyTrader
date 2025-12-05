@@ -16,8 +16,8 @@ public class SMACrossover extends Strategy {
 	}
 
 	@Override
-	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio, ArrayList<TradingAction> possibleActions,
-			int day) {
+	public ArrayList<TradingAction> decide(Market market, Portfolio portfolio,
+			ArrayList<TradingAction> possibleActions) {
 		ArrayList<TradingAction> chosenActions = new ArrayList<>();
 		int longMA = (int) getParameterValue("longMA");
 		int shortMA = (int) getParameterValue("shortMA");

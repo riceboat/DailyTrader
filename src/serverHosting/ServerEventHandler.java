@@ -19,7 +19,6 @@ import com.sun.net.httpserver.HttpExchange;
 import backTesting.StrategySimulator;
 import dailyTrader.APIManager;
 import dailyTrader.Bars;
-import dailyTrader.JSONManager;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
 import strategies.BuyAndHoldEverything;
@@ -159,8 +158,6 @@ public class ServerEventHandler implements Runnable {
 			}
 		}
 		Portfolio portfolio = apiManager.getPortfolio(numDays);
-		JSONManager jsonManager = new JSONManager();
-
 		Market market = apiManager.createMarketFromTickers(apiManager.getSavedTickers(), numDays);
 		StrategySimulator simulator = new StrategySimulator(strategy, market, portfolio, false);
 		Bars simulationBars = simulator.run();

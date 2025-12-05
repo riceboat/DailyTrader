@@ -3,6 +3,7 @@ package dailyTrader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
@@ -12,11 +13,13 @@ import org.json.JSONObject;
 public class Market implements JSONConvertible {
 	private HashMap<String, Bars> symbolBars;
 	private int days;
+	private ArrayList<Date> openDates;
 
 	public Market(ArrayList<Bars> data) {
 		symbolBars = new HashMap<String, Bars>();
 		days = data.get(0).size();
 		for (Bars bars : data) {
+			openDates = bars.getDates();
 			if (days > bars.size()) {
 				System.out.println(bars.symbol + " has only " + bars.size() + " data points!, removing");
 			} else {
@@ -37,6 +40,10 @@ public class Market implements JSONConvertible {
 		for (Bars bars : data) {
 			symbolBars.put(bars.symbol, bars);
 		}
+	}
+
+	public ArrayList<Date> getOpenDates() {
+		return openDates;
 	}
 
 	public int getDays() {
@@ -63,6 +70,21 @@ public class Market implements JSONConvertible {
 		return new Market(newData);
 	}
 
+	public Market dataBefore(Date date) {
+		ArrayList<Bars> newData = new ArrayList<Bars>();
+		for (Entry<String, Bars> entry : symbolBars.entrySet()) {
+			Bars newBars = new Bars();
+			int i = 0;
+			while (entry.getValue().get(i).start.before(date)) {
+				newBars.add(entry.getValue().get(i));
+				i++;
+			}
+			newData.add(newBars);
+		}
+		return new Market(newData);
+
+	}
+
 	public void saveData(String path) {
 		try (FileWriter csvWriter = new FileWriter(path)) {
 			for (Entry<String, Bars> entry : symbolBars.entrySet()) {
@@ -74,6 +96,7 @@ public class Market implements JSONConvertible {
 		}
 	}
 
+	@Override
 	public JSONObject toJSON() {
 		JSONObject jsonMarket = new JSONObject();
 		for (Entry<String, Bars> entry : symbolBars.entrySet()) {
@@ -81,5 +104,16 @@ public class Market implements JSONConvertible {
 			jsonMarket.put(bars.symbol, bars.toJSON());
 		}
 		return jsonMarket;
+	}
+
+	public double getSymbolValueOnDate(String symbol, Date date) {
+		Bars myBars = symbolBars.get(symbol);
+		for (Bar bar : myBars.bars) {
+			if (bar.start.equals(date)) {
+				return bar.o;
+			}
+		}
+		System.err.println("No data found for " + symbol + " on: " + date.toString());
+		return -1.0;
 	}
 }
