@@ -75,6 +75,13 @@ public class StrategySimulator {
 				for (TradingAction tradingAction : selectedActions) {
 					newBar.AddAction(tradingAction);
 				}
+				for (Position position : portfolio.positions) {
+					Position newPosition = new Position(position.symbol, position.side, position.qty,
+							position.entryPrice, currentDate);
+					newPosition.pnl = position.pnl;
+					newPosition.pnlpc = position.pnlpc;
+					newBar.AddPosition(newPosition);
+				}
 				portfolioBars.add(newBar);
 			}
 		}

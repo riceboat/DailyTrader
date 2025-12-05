@@ -380,7 +380,9 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
 			    mX = d3.mouse(this)[0];
 				mY = d3.mouse(this)[1];
 				for (var i in data){
+					
 					bsX = d3.bisector((d) => x(d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(d.t))).left(data[i], mX);
+					
 					xVal = d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(data[i][bsX].t);
 					yVal = data[i][bsX].c;
 					focus
@@ -390,6 +392,18 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
 					      .html("$" + yVal.toFixed(2) + ": " + xVal.toLocaleDateString('en-US'))
 					      .attr("x", x(xVal))
 					      .attr("y", mY);
+					var positionData = data[i][bsX].positionsHeld;
+					var dataDict = [];
+					for (var posIndex in positionData){
+						var position = positionData[posIndex];
+						var symbol = position.symbol;
+						var qty = position.qty;
+						var pnl = position.pnl;
+						var entryPrice = position.entry_price
+						var currentValue = (qty * entryPrice) + pnl;
+						dataDict.push({"symbol" : symbol, "value": currentValue});
+					}
+					updateBarPlot(dataDict);
 					    }
 				}
 			  function mouseout() {
@@ -422,7 +436,6 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
                         return y(d.c)
                     })
                 );
-			console.log(data);
             for (var key in data) {
                 for (var obj in data[key]) {
                     dataPoint = data[key][obj];
@@ -500,6 +513,64 @@ function removeTicker(ticker) {
 		document.querySelector('#runStrategyButton').click();
     });
 }
+
+	var margin = {top: 30, right: 30, bottom: 70, left: 60},
+	    width = 460 - margin.left - margin.right,
+	    height = 400 - margin.top - margin.bottom;
+
+	// append the svg object to the body of the page
+	var svg = d3.select("#portfolioBarplotContainer")
+	  .append("svg")
+	    .attr("width", width + margin.left + margin.right)
+	    .attr("height", height + margin.top + margin.bottom)
+	  .append("g")
+	    .attr("transform",
+	          "translate(" + margin.left + "," + margin.top + ")");
+
+	// Initialize the X axis
+	var x = d3.scaleBand()
+	  .range([ 0, width ])
+	  .padding(0.2);
+	var xAxis = svg.append("g")
+	  .attr("transform", "translate(0," + height + ")")
+
+	// Initialize the Y axis
+	var y = d3.scaleLinear()
+	  .range([ height, 0]);
+	var yAxis = svg.append("g")
+	  .attr("class", "myYaxis")
+	  // A function that create / update the plot for a given variable:
+	  function updateBarPlot(data) {
+
+	    // Update the X axis
+	    x.domain(data.map(function(d) { return d.symbol; }))
+	    xAxis.call(d3.axisBottom(x))
+
+	    // Update the Y axis
+	    y.domain([0, d3.max(data, function(d) { return d.value }) ]);
+	    yAxis.transition().duration(10).call(d3.axisLeft(y));
+
+	    // Create the u variable
+	    var u = svg.selectAll("rect")
+	      .data(data)
+
+	    u
+	      .enter()
+	      .append("rect") // Add a new rect for each new elements
+	      .merge(u) // get the already existing elements as well
+	      .transition() // and apply changes to all of them
+	      .duration(10)
+	        .attr("x", function(d) { return x(d.symbol); })
+	        .attr("y", function(d) { return y(d.value); })
+	        .attr("width", x.bandwidth())
+	        .attr("height", function(d) { return height - y(d.value); })
+	        .attr("fill", function(d) { return stringToColor(d.symbol); })
+
+	    // If less group in the new dataset, I delete the ones not in use anymore
+	    u
+	      .exit()
+	      .remove()
+	  }
 
 displayPortfolioGraph(0);
 displayStrategyGraph("BuyAndHoldEverything");

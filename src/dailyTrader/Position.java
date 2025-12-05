@@ -1,5 +1,8 @@
 package dailyTrader;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.json.JSONObject;
 
 public class Position {
@@ -8,8 +11,9 @@ public class Position {
 	public double pnl;
 	public Side side;
 	public Type type;
-	double entryPrice;
+	public double entryPrice;
 	public double pnlpc;
+	private Date startDate;
 
 	public Position(JSONObject obj) {
 		this.symbol = obj.getString("symbol");
@@ -26,11 +30,12 @@ public class Position {
 	public Position() {
 	}
 
-	public Position(String symbol, Side side, double qty, double entryPrice) {
+	public Position(String symbol, Side side, double qty, double entryPrice, Date startDate) {
 		this.symbol = symbol;
 		this.side = side;
 		this.entryPrice = entryPrice;
 		this.qty = qty;
+		this.startDate = startDate;
 	}
 
 	public void update(double currentPrice) {
@@ -41,8 +46,10 @@ public class Position {
 			this.pnl = entryPrice * qty - currentPrice * qty;
 			this.pnlpc = ((entryPrice * qty) / (currentPrice * qty) - 1) * 100;
 		}
+
 	}
 
+	@Override
 	public String toString() {
 		String s = "Symbol: " + this.symbol + "\n";
 		s += "Quantity: " + this.qty + "\n";
@@ -59,7 +66,12 @@ public class Position {
 		positionJsonObject.put("pnl", pnl);
 		positionJsonObject.put("pnlpc", pnlpc);
 		positionJsonObject.put("side", side);
+		positionJsonObject.put("qty", qty);
 		positionJsonObject.put("entry_price", entryPrice);
+		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+		String isoDate = dateFormatter.format(startDate);
+		positionJsonObject.put("start_date", isoDate);
 		return positionJsonObject;
 	}
+
 }

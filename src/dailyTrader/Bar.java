@@ -20,6 +20,7 @@ public class Bar implements JSONConvertible {
 	public Date start;
 	public String symbol;
 	ArrayList<TradingAction> tradingActionsPerformed;
+	private ArrayList<Position> positionsHeld;
 
 	public Bar(JSONObject obj, int minutes, int hours, String symbol) {
 		this.o = obj.getFloat("o");
@@ -32,6 +33,7 @@ public class Bar implements JSONConvertible {
 		before = before.minus(Duration.ofMinutes(minutes));
 		this.start = Date.from(before);
 		tradingActionsPerformed = new ArrayList<TradingAction>();
+		positionsHeld = new ArrayList<Position>();
 	}
 
 	public Bar(String symbol, double c, Date start, Date end) {
@@ -40,10 +42,15 @@ public class Bar implements JSONConvertible {
 		this.end = end;
 		this.symbol = symbol;
 		tradingActionsPerformed = new ArrayList<TradingAction>();
+		positionsHeld = new ArrayList<Position>();
 	}
 
 	public void AddAction(TradingAction action) {
 		tradingActionsPerformed.add(action);
+	}
+
+	public void AddPosition(Position position) {
+		positionsHeld.add(position);
 	}
 
 	@Override
@@ -72,6 +79,11 @@ public class Bar implements JSONConvertible {
 			tradingActionsJsonArray.put(tradingAction.toJSON());
 		}
 		jsonBar.put("tradingActions", tradingActionsJsonArray);
+		JSONArray positionsHeldJsonArray = new JSONArray();
+		for (Position position : positionsHeld) {
+			positionsHeldJsonArray.put(position.toJSON());
+		}
+		jsonBar.put("positionsHeld", positionsHeldJsonArray);
 		return jsonBar;
 	}
 }

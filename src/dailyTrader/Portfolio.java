@@ -41,7 +41,7 @@ public class Portfolio implements JSONConvertible {
 				double cashCommitment = cash * (tradingAction.getPercentage() / totalCommitment);
 				double qtyBought = cashCommitment / entryPrice;
 				Position newPosition = new Position(tradingAction.getSymbol(), tradingAction.getSide(), qtyBought,
-						entryPrice);
+						entryPrice, date);
 				positions.add(newPosition);
 				cash -= cashCommitment;
 				totalCommitment -= tradingAction.getPercentage();
@@ -63,9 +63,6 @@ public class Portfolio implements JSONConvertible {
 			}
 			}
 
-		}
-		for (Position position : positions) {
-			position.update(market.getSymbolValueOnDate(position.symbol, date));
 		}
 
 	}
