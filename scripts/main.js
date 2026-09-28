@@ -47,6 +47,7 @@ function displayMarketGraph(symbolString) {
                 l: +d.l,
                 c: +d.c
             }));
+			document.getElementById("sharpeRatioTextMarketGraph").innerHTML = "Sharpe Ratio: " + data.sharpeRatio.toFixed(2);;
             // Add X axis --> it is a date format
             var x = d3.scaleTime()
                 .domain(d3.extent(parsed, function(d) {
@@ -94,6 +95,7 @@ function displayMarketGraph(symbolString) {
 							    mX = d3.mouse(this)[0];
 								mY = d3.mouse(this)[1];
 								for (var i in data){
+									if (data[i][bsX]){
 									bsX = d3.bisector((d) => x(d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(d.t))).left(data[i], mX);
 									xVal = d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(data[i][bsX].t);
 									yVal = data[i][bsX].c;
@@ -105,6 +107,7 @@ function displayMarketGraph(symbolString) {
 									      .attr("x", x(xVal))
 									      .attr("y", mY);
 									    }
+									}
 								}
 							  function mouseout() {
 							    focus.style("opacity", 0);
@@ -281,7 +284,8 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
             if (error) throw error;
             var selectedStrategy = "";
             data = JSON.parse(data.response);
-
+			document.getElementById("sharpeRatioText").innerHTML = "Sharpe Ratio: " + data.sharpeRatio.toFixed(2);;
+			document.getElementById("profitText").innerHTML = "Profit: $" + data.profit.toFixed(2);;
             selectedStrategy = Object.keys(data)[0];
             d3.request("api").post("strategyNames=1",
                 function readData(data) {
@@ -300,7 +304,7 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
                     });
                 }
             );
-            const parsed = data[Object.keys(data)[0]].map(d => ({
+            const parsed = data[strategyName].map(d => ({
                 ...d,
                 t: d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(d.t), // Convert date string to Date object
                 o: +d.o,
@@ -308,6 +312,7 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
                 l: +d.l,
                 c: +d.c
             }));
+			
             // Add X axis --> it is a date format
             var x = d3.scaleTime()
                 .domain(d3.extent(parsed, function(d) {
@@ -358,6 +363,7 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
 			    .append('circle')
 			      .style("fill", "none")
 			      .attr("stroke", "white")
+				  .attr("id", "lineCircle")
 			      .attr('r', 4)
 			      .style("opacity", 0)
 				  .style("color", "white");
@@ -382,7 +388,7 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
 				for (var i in data){
 					
 					bsX = d3.bisector((d) => x(d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(d.t))).left(data[i], mX);
-					
+					if (data[i][bsX]){
 					xVal = d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(data[i][bsX].t);
 					yVal = data[i][bsX].c;
 					focus
@@ -405,6 +411,7 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
 					}
 					updateBarPlot(dataDict);
 					    }
+						}
 				}
 			  function mouseout() {
 			    focus.style("opacity", 0);
@@ -442,6 +449,7 @@ function displayStrategyGraph(strategyName, parameterNames, parameterValues) {
                     if (dataPoint.tradingActions.length > 0) {
                         timeStamp = d3.timeParse("%Y-%m-%dT%H:%M:%S.%L%Z")(dataPoint.t);
                         closePrice = dataPoint.c;
+						console.log(dataPoint);
                         svg.append("text")
                             .attr("x", x(timeStamp))
                             .attr('y', y(closePrice))
@@ -549,7 +557,7 @@ function removeTicker(ticker) {
 	    // Update the Y axis
 	    y.domain([0, d3.max(data, function(d) { return d.value }) ]);
 	    yAxis.transition().duration(10).call(d3.axisLeft(y));
-
+		
 	    // Create the u variable
 	    var u = svg.selectAll("rect")
 	      .data(data)
@@ -565,7 +573,7 @@ function removeTicker(ticker) {
 	        .attr("width", x.bandwidth())
 	        .attr("height", function(d) { return height - y(d.value); })
 	        .attr("fill", function(d) { return stringToColor(d.symbol); })
-
+		d3.select("lineCircle").attr("stroke", "red");
 	    // If less group in the new dataset, I delete the ones not in use anymore
 	    u
 	      .exit()

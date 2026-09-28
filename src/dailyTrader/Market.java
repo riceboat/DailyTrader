@@ -58,11 +58,23 @@ public class Market implements JSONConvertible {
 		return symbolBars.get(symbol);
 	}
 
-	public Market firstNDays(int days) {
+	public Market getFirstNDays(int days) {
 		ArrayList<Bars> newData = new ArrayList<Bars>();
 		for (Entry<String, Bars> entry : symbolBars.entrySet()) {
 			Bars newBars = new Bars();
 			for (int i = 0; i < days; i++) {
+				newBars.add(entry.getValue().get(i));
+			}
+			newData.add(newBars);
+		}
+		return new Market(newData);
+	}
+
+	public Market getLastNDays(int days) {
+		ArrayList<Bars> newData = new ArrayList<Bars>();
+		for (Entry<String, Bars> entry : symbolBars.entrySet()) {
+			Bars newBars = new Bars();
+			for (int i = days - 1; i != 0; i--) {
 				newBars.add(entry.getValue().get(i));
 			}
 			newData.add(newBars);

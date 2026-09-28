@@ -26,12 +26,19 @@ public class SMACrossover extends Strategy {
 			double longMAValue = actionBars.getSMALastNDays(longMA);
 			double shortMAValue = actionBars.getSMALastNDays(shortMA);
 			if (action.getSide() == Side.LONG && shortMAValue > longMAValue) {
+				action.setJustificationString("Short moving average of " + shortMAValue + " was greater than Long MA: "
+						+ longMAValue + " so we are expecting the momentum to continue upwards");
 				chosenActions.add(action);
 			}
 			if (action.getSide() == Side.SELL && shortMAValue < longMAValue) {
+				action.setJustificationString("Short moving average of " + shortMAValue + " was less than Long MA: "
+						+ longMAValue + " so we are expecting the momentum to continue downwards");
 				chosenActions.add(action);
 			}
 			if (action.getSide() == Side.SHORT && shortMAValue < longMAValue) {
+				action.setJustificationString("Short moving average of " + shortMAValue + " was less than Long MA: "
+						+ longMAValue
+						+ " so we are expecting the momentum to continue downwards, we also have enough money to short stocks");
 				chosenActions.add(action);
 			}
 		}

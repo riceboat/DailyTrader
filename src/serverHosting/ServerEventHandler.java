@@ -22,8 +22,11 @@ import dailyTrader.Bars;
 import dailyTrader.Market;
 import dailyTrader.Portfolio;
 import strategies.BuyAndHoldEverything;
+import strategies.PairsTradingSPYCorrelation;
 import strategies.RandomActions;
 import strategies.SMACrossover;
+import strategies.SellAtNPercentProfit;
+import strategies.SellWorstPerformingEveryNDays;
 import strategies.Strategy;
 
 public class ServerEventHandler implements Runnable {
@@ -32,6 +35,7 @@ public class ServerEventHandler implements Runnable {
 	private String responseString;
 	private HttpExchange httpExchange;
 	private ArrayList<Strategy> strategyObjectList;
+	boolean debug = false;
 
 	public ServerEventHandler(APIManager apiManager, HttpExchange httpExchange) {
 		this.apiManager = apiManager;
@@ -40,6 +44,9 @@ public class ServerEventHandler implements Runnable {
 		strategyObjectList.add(new BuyAndHoldEverything());
 		strategyObjectList.add(new RandomActions(0));
 		strategyObjectList.add(new SMACrossover(0, 0));
+		strategyObjectList.add(new SellWorstPerformingEveryNDays(0));
+		strategyObjectList.add(new SellAtNPercentProfit(0));
+		strategyObjectList.add(new PairsTradingSPYCorrelation(0, 0));
 	}
 
 	static String readFile(String filePath) {
@@ -54,7 +61,9 @@ public class ServerEventHandler implements Runnable {
 		if (uriString.equals("")) {
 			return readFile("pages/index.html");
 		} else if (uriString.equals("api")) {
-			System.out.println("API CALL -> " + requestString);
+			if (debug) {
+				System.out.println("API CALL -> " + requestString);
+			}
 			double startTime = System.nanoTime();
 			LinkedHashMap<String, String> requestStringHashMap = new LinkedHashMap<String, String>();
 			String[] splitParamStrings = requestString.split("&");
@@ -72,7 +81,7 @@ public class ServerEventHandler implements Runnable {
 						convertedHashMap.put(entry.getKey(), Double.parseDouble(entry.getValue()));
 					}
 				}
-				result = runStrategy(valueString, 365, convertedHashMap);
+				result = runStrategy(valueString, 365 * 5, convertedHashMap);
 			} else if (keyString.equals("portfolio")) {
 				result = apiManager.getPortfolio(Integer.parseInt(valueString)).toJSON().toString();
 			} else if (keyString.equals("addTicker")) {
@@ -93,9 +102,9 @@ public class ServerEventHandler implements Runnable {
 				resultObject.put("tickers", tickerStringArray);
 				result = resultObject.toString();
 			} else if (keyString.equals("bars")) {
-				result = apiManager.getHistoricalBars(valueString, 365, ChronoUnit.DAYS).toJSON().toString();
+				result = apiManager.getHistoricalBars(valueString, 365 * 5, ChronoUnit.DAYS).toJSON().toString();
 			} else if (keyString.equals("market")) {
-				result = apiManager.createMarketFromTickers(apiManager.getSavedTickers(), 365).toJSON().toString();
+				result = apiManager.createMarketFromTickers(apiManager.getSavedTickers(), 365 * 5).toJSON().toString();
 			} else if (keyString.equals("strategyNames")) {
 				JSONObject strategyNames = new JSONObject();
 				JSONArray nameArray = new JSONArray();
@@ -108,8 +117,10 @@ public class ServerEventHandler implements Runnable {
 				strategyNames.put("strategies", nameArray);
 				result = strategyNames.toString();
 			}
-			double timeTaken = (System.nanoTime() - startTime) / 1000000;
-			System.out.println(requestString + " took " + timeTaken + "ms");
+			if (debug) {
+				double timeTaken = (System.nanoTime() - startTime) / 1000000;
+				System.out.println(requestString + " took " + timeTaken + "ms");
+			}
 			return result;
 
 		} else {

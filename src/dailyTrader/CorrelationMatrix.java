@@ -13,10 +13,12 @@ class Pair {
 		this.y = y;
 	}
 
+	@Override
 	public boolean equals(Object obj) {
 		return obj.hashCode() == hashCode();
 	}
 
+	@Override
 	public int hashCode() {
 		return x.hashCode() + y.hashCode();
 	}
@@ -26,13 +28,14 @@ class Pair {
 
 	}
 
+	@Override
 	public String toString() {
 		return x + " - " + y;
 	}
 }
 
 public class CorrelationMatrix {
-	HashMap<Pair, Double> matrix;
+	private HashMap<Pair, Double> matrix;
 
 	public CorrelationMatrix() {
 		matrix = new HashMap<Pair, Double>();
@@ -43,12 +46,17 @@ public class CorrelationMatrix {
 
 	}
 
+	@Override
 	public String toString() {
 		String s = "";
 		for (Entry<Pair, Double> entry : matrix.entrySet()) {
 			s += entry.getKey() + " = " + entry.getValue() + "\n";
 		}
 		return s;
+	}
+
+	public int size() {
+		return matrix.size();
 	}
 
 	public CorrelationMatrix correlationBetweenAll(ArrayList<Bars> barsList) {
@@ -84,6 +92,15 @@ public class CorrelationMatrix {
 			}
 		}
 		return new CorrelationMatrix(correlations);
+	}
+
+	public boolean hasSymbol(String symbol) {
+		for (Pair pair : matrix.keySet()) {
+			if (pair.has(symbol)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public CorrelationMatrix correlationWithSymbol(ArrayList<Bars> barsList, Bars bars2) {

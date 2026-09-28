@@ -152,6 +152,25 @@ public class Bars implements JSONConvertible {
 		return Math.round(result * 100.0) / 100.0;
 	}
 
+	public double getSharpeRatio() {
+		double riskFreeRate = 0.78; // SPY return % over 5 years
+		double initial = bars.get(0).c;
+		double profitPercent = (getTotalProfit() / initial);
+		double stdPercent = (getStandardDeviation() / initial);
+		System.out.println(symbol);
+		System.out.println(profitPercent);
+		System.out.println(stdPercent);
+		if (initial != 0) {
+			return (profitPercent - riskFreeRate) / stdPercent;
+		} else {
+			return 0;
+		}
+	}
+
+	public double getTotalProfit() {
+		return bars.get(bars.size() - 1).c - bars.get(0).c;
+	}
+
 	@Override
 	public JSONObject toJSON() {
 		JSONObject jsonBars = new JSONObject();
@@ -161,6 +180,8 @@ public class Bars implements JSONConvertible {
 			jsonBarArray.put(jsonBar);
 		}
 		jsonBars.put(symbol, jsonBarArray);
+		jsonBars.put("sharpeRatio", getSharpeRatio());
+		jsonBars.put("profit", getTotalProfit());
 		return jsonBars;
 	}
 }

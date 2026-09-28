@@ -20,7 +20,9 @@ public class RandomActions extends Strategy {
 		Random random = new Random();
 		if (random.nextDouble() < actionProbability) {
 			int ranInt = random.nextInt(possibleActions.size());
-			chosenActions.add(possibleActions.get(ranInt));
+			TradingAction action = possibleActions.get(ranInt);
+			action.setJustificationString("Our random threshold was exceeded, so we picked a random trading action");
+			chosenActions.add(action);
 		}
 		return chosenActions;
 	}

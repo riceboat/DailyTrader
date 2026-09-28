@@ -193,6 +193,7 @@ public class APIManager {
 		Bars portfolioHistoryBars = getPortfolioHistory(numDays);
 		JSONObject portfolioJsonObject = new JSONObject();
 		portfolioJsonObject.put("history", portfolioHistoryBars.toJSON());
+		System.out.println(positionsJsonArray.toString());
 		portfolioJsonObject.put("positions", positionsJsonArray);
 
 		Portfolio portfolio = new Portfolio(portfolioJsonObject, getAccount());

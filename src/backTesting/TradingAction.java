@@ -11,6 +11,7 @@ public class TradingAction implements JSONConvertible {
 	double percent;
 	Type type;
 	String codeString;
+	String justification;
 
 	public TradingAction(Type type, Side side, double percent, String codeString) {
 		this.type = type;
@@ -48,12 +49,20 @@ public class TradingAction implements JSONConvertible {
 		return codeString;
 	}
 
+	public String getJustificationString() {
+		return justification;
+	}
+
 	public double getPercentage() {
 		return percent;
 	}
 
 	public Type getType() {
 		return type;
+	}
+
+	public void setJustificationString(String justification) {
+		this.justification = justification;
 	}
 
 	public void setPercentage(double percent) {
@@ -67,6 +76,8 @@ public class TradingAction implements JSONConvertible {
 		jsonBar.put("percentage", percent);
 		jsonBar.put("side", side);
 		jsonBar.put("type", type);
+		jsonBar.put("justification", justification);
 		return jsonBar;
 	}
+
 }
